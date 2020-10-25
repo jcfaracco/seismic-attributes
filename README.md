@@ -7,7 +7,7 @@ In this example, we demonstrate how to use *d2geo* to produce seismic attributes
 
 Read the SEGY file. There are Python libraries that can be used to read SEGY, for instance [`segyio`](https://github.com/equinor/segyio). 
 
-Run the script [`read_segy.py`]() and it will read the SEGY and produce a Numpy cube called `data`. 
+Run the script [`read_segy.py`](https://github.com/yohanesnuwara/d2geo/blob/yohanesnuwara-patch-1/read_segy.py) and it will read the SEGY and produce a Numpy cube called `data`. Also it prints out useful information about the range of inlines, crosslines, TWT, sample rate, and the data percentiles. 
 
 ```
 Inline range from 100 to 750
