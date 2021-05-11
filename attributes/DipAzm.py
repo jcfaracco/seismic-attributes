@@ -12,10 +12,12 @@ import numpy as np
 import dask.array as da
 from scipy import ndimage as ndi
 import util
+
+from Base import BaseAttributes
 from SignalProcess import SignalProcess as sp
 
 
-class DipAzm():
+class DipAzm(BaseAttributes):
     """
     Description
     -----------
@@ -24,57 +26,13 @@ class DipAzm():
     
     Methods
     -------
-    create_array
     gradient_dips
     gradient_structure_tensor
     gst_2D_dips
     gst_3D_dip
     gst_3D_azm
     """
-    
-    def create_array(self, darray, kernel=None, preview=None):
-        """
-        Description
-        -----------
-        Convert input to Dask Array with ideal chunk size as necessary.  Perform
-        necessary ghosting as needed for opertations utilizing windowed functions.
-        
-        Parameters
-        ----------
-        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
-        
-        Keywork Arguments
-        -----------------    
-        kernel : tuple (len 3), operator size
-        preview : str, enables or disables preview mode and specifies direction
-            Acceptable inputs are (None, 'inline', 'xline', 'z')
-            Optimizes chunk size in different orientations to facilitate rapid
-            screening of algorithm output
-        
-        Returns
-        -------
-        darray : Dask Array
-        chunk_init : tuple (len 3), chunk size before ghosting.  Used in select cases
-        """
-        
-        if not isinstance(darray, da.core.Array):  
-            chunk_size = util.compute_chunk_size(darray.shape, 
-                                               darray.dtype.itemsize, 
-                                               kernel=kernel,
-                                               preview=preview)
-            darray = da.from_array(darray, chunks=chunk_size)
-            chunks_init = darray.chunks            
-                
-        else:
-            chunks_init = darray.chunks
-        
-        if kernel != None:
-                hw = tuple(np.array(kernel) // 2)
-                darray = da.overlap.overlap(darray, depth=hw, boundary='reflect')
-                
-        return(darray, chunks_init)
-        
-    
+
     def gradient_dips(self, darray, dip_factor=10, kernel=(3,3,3), preview=None):
         """
         Description

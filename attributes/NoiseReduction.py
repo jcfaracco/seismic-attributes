@@ -13,9 +13,10 @@ import numpy as np
 from scipy import ndimage as ndi
 import util
 
+from Base import BaseAttributes
 
 
-class NoiseReduction():
+class NoiseReduction(BaseAttributes):
     """
     Description
     -----------
@@ -23,57 +24,11 @@ class NoiseReduction():
     
     Methods
     -------
-    create_array
     gaussian
     median
     convolution
     """
-    
-    def create_array(self, darray, kernel, preview):
-        """
-        Description
-        -----------
-        Convert input to Dask Array with ideal chunk size as necessary.  Perform
-        necessary ghosting as needed for opertations utilizing windowed functions.
-        
-        Parameters
-        ----------
-        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
-        
-        Keywork Arguments
-        -----------------    
-        kernel : tuple (len 3), operator size
-        preview : str, enables or disables preview mode and specifies direction
-            Acceptable inputs are (None, 'inline', 'xline', 'z')
-            Optimizes chunk size in different orientations to facilitate rapid
-            screening of algorithm output
-        
-        Returns
-        -------
-        darray : Dask Array
-        chunk_init : tuple (len 3), chunk size before ghosting.  Used in select cases
-        """
-    
-        # Compute chunk size and convert if not a Dask Array
-        if not isinstance(darray, da.core.Array):  
-            chunk_size = util.compute_chunk_size(darray.shape, 
-                                               darray.dtype.itemsize, 
-                                               kernel=kernel,
-                                               preview=preview)
-            darray = da.from_array(darray, chunks=chunk_size)
-            chunks_init = darray.chunks            
-                
-        else:
-            chunks_init = darray.chunks
-        
-        # Ghost Dask Array if operation specifies a kernel
-        if kernel != None:
-                hw = tuple(np.array(kernel) // 2)
-                darray = da.overlap.overlap(darray, depth=hw, boundary='reflect')
-                
-        return(darray, chunks_init)
-        
-        
+
     def gaussian(self, darray, sigmas=(1, 1, 1), preview=None):
         """
         Description
