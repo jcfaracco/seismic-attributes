@@ -25,6 +25,7 @@ class ComplexAttributes(BaseAttributes):
     
     Methods
     -------
+    hilbert_transform
     envelope
     instantaneous_phase 
     cosine_instantaneous_phase 
@@ -40,6 +41,36 @@ class ComplexAttributes(BaseAttributes):
     response_amplitude 
     apparent_polarity
     """
+
+    def hilbert_transform(self, darray, preview=None):
+        """
+        Description
+        -----------
+        Compute the Hilbert Transform of the input data
+
+        Parameters
+        ----------
+        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
+
+        Keywork Arguments
+        -----------------
+        preview : str, enables or disables preview mode and specifies direction
+            Acceptable inputs are (None, 'inline', 'xline', 'z')
+            Optimizes chunk size in different orientations to facilitate rapid
+            screening of algorithm output
+
+        Returns
+        -------
+        result : Dask Array
+        """
+
+        kernel = (1,1,25)
+        darray, chunks_init = self.create_array(darray, kernel, preview=preview)
+        analytical_trace = darray.map_blocks(util.hilbert, dtype=darray.dtype)
+        result = util.trim_dask_array(analytical_trace, kernel)
+
+        return(result)
+
 
     def envelope(self, darray, preview=None):
         """
@@ -69,10 +100,9 @@ class ComplexAttributes(BaseAttributes):
         result = da.absolute(analytical_trace)
         result = util.trim_dask_array(result, kernel)
         
-        return(result) 
-        
-    
-    
+        return(result)
+
+
     def instantaneous_phase(self, darray, preview=None):
         """
         Description
@@ -102,8 +132,8 @@ class ComplexAttributes(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         
         return(result)
-            
-            
+
+
     def cosine_instantaneous_phase(self, darray, preview=None):
         """
         Description
@@ -131,9 +161,8 @@ class ComplexAttributes(BaseAttributes):
         result = da.rad2deg(da.angle(phase))
         
         return(result)
-            
-    
-    
+
+
     def relative_amplitude_change(self, darray, preview=None):
         """
         Description
@@ -163,9 +192,8 @@ class ComplexAttributes(BaseAttributes):
         result = da.clip(result, -1, 1)
             
         return(result)
-            
-    
-    
+
+
     def amplitude_acceleration(self, darray, preview=None):
         """
         Description
@@ -194,8 +222,7 @@ class ComplexAttributes(BaseAttributes):
             
         return(result)
 
-    
-    
+
     def instantaneous_frequency(self, darray, sample_rate=4, preview=None):
         """
         Description
@@ -229,8 +256,8 @@ class ComplexAttributes(BaseAttributes):
         result = da.absolute((phase_prime / (2.0 * np.pi) * fs))
                    
         return(result)
-        
-        
+
+
     def instantaneous_bandwidth(self, darray, preview=None):
         """
         Description
@@ -258,8 +285,8 @@ class ComplexAttributes(BaseAttributes):
         result = da.absolute(rac) / (2.0 * np.pi)        
         
         return(result)
-            
-    
+
+
     def dominant_frequency(self, darray, sample_rate=4, preview=None):
         """
         Description
@@ -289,8 +316,8 @@ class ComplexAttributes(BaseAttributes):
         result = da.hypot(inst_freq, inst_band)
                     
         return(result)
-        
-        
+
+
     def frequency_change(self, darray, sample_rate=4, preview=None):
         """
         Description
@@ -319,8 +346,8 @@ class ComplexAttributes(BaseAttributes):
         result = sp().first_derivative(inst_freq, axis=-1)
                     
         return(result)
-        
-        
+
+
     def sweetness(self, darray, sample_rate=4, preview=None):
         """
         Description
@@ -356,8 +383,8 @@ class ComplexAttributes(BaseAttributes):
         result = env / inst_freq
                             
         return(result)
-        
-    
+
+
     def quality_factor(self, darray, sample_rate=4, preview=None):
         """
         Description
@@ -389,8 +416,8 @@ class ComplexAttributes(BaseAttributes):
         result = (np.pi * inst_freq) / rac
         
         return(result)       
-        
-        
+
+
     def response_phase(self, darray, preview=None):
         """
         Description
@@ -439,8 +466,8 @@ class ComplexAttributes(BaseAttributes):
         
         
         return(result)
-        
-        
+
+
     def response_frequency(self, darray, sample_rate=4, preview=None):
         """
         Description
@@ -489,8 +516,8 @@ class ComplexAttributes(BaseAttributes):
         result[da.isnan(result)] = 0
         
         return(result)
-        
-        
+
+
     def response_amplitude(self, darray, preview=None):
         """
         Description
