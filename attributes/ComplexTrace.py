@@ -128,7 +128,7 @@ class ComplexAttributes(BaseAttributes):
         kernel = (1,1,25)
         darray, chunks_init = self.create_array(darray, kernel, preview=preview)
         analytical_trace = darray.map_blocks(util.hilbert, dtype=darray.dtype)
-        result = da.unwrap(da.angle(analytical_trace))
+        result = da.rad2deg(da.angle(analytical_trace))
         result = util.trim_dask_array(result, kernel)
         
         return(result)
