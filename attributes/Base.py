@@ -23,7 +23,7 @@ class BaseAttributes(object):
     -------
     create_array
     """
-    def create_array(self, darray, kernel=None, preview=None):
+    def create_array(self, darray, kernel=None, boundary='reflect', preview=None):
         """
         Description
         -----------
@@ -37,6 +37,8 @@ class BaseAttributes(object):
         Keywork Arguments
         -----------------    
         kernel : tuple (len 3), operator size
+        boundary : str, indicates data reflection between data chunks
+            For further reference see Dask Overlaping options.
         preview : str, enables or disables preview mode and specifies direction
             Acceptable inputs are (None, 'inline', 'xline', 'z')
             Optimizes chunk size in different orientations to facilitate rapid
@@ -51,9 +53,9 @@ class BaseAttributes(object):
         # Compute chunk size and convert if not a Dask Array
         if not isinstance(darray, da.core.Array):  
             chunk_size = util.compute_chunk_size(darray.shape, 
-                                               darray.dtype.itemsize, 
-                                               kernel=kernel,
-                                               preview=preview)
+                                                 darray.dtype.itemsize,
+                                                 kernel=kernel,
+                                                 preview=preview)
             darray = da.from_array(darray, chunks=chunk_size)
             chunks_init = darray.chunks            
                 
@@ -63,6 +65,6 @@ class BaseAttributes(object):
         # Ghost Dask Array if operation specifies a kernel
         if kernel != None:
                 hw = tuple(np.array(kernel) // 2)
-                darray = da.overlap.overlap(darray, depth=hw, boundary='reflect')
+                darray = da.overlap.overlap(darray, depth=hw, boundary=boundary)
                 
         return(darray, chunks_init)
