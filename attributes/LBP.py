@@ -57,7 +57,7 @@ class LBPAttributes(BaseAttributes):
         method = 'default'
 
         if not isinstance(darray, da.core.Array):
-            darray = da.from_array(darray, chunks=(int(darray.shape[0]/4), int(darray.shape[1]), 1))
+            darray = da.from_array(darray, chunks=(1, min(int(darray.shape[1]/4), 1000), int(darray.shape[2])))
 
         darray, chunks_init = self.create_array(darray, kernel, boundary='periodic', preview=preview)
 
