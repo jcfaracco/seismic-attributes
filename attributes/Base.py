@@ -23,7 +23,7 @@ class BaseAttributes(object):
     -------
     create_array
     """
-    def create_array(self, darray, kernel=None, boundary='reflect', preview=None):
+    def create_array(self, darray, kernel=None, hw=None, boundary='reflect', preview=None):
         """
         Description
         -----------
@@ -61,10 +61,12 @@ class BaseAttributes(object):
                 
         else:
             chunks_init = darray.chunks
+            print(chunks_init)
         
         # Ghost Dask Array if operation specifies a kernel
         if kernel != None:
-                hw = tuple(np.array(kernel) // 2)
+                if hw is None:
+                    hw = tuple(np.array(kernel) // 2)
                 darray = da.overlap.overlap(darray, depth=hw, boundary=boundary)
                 
         return(darray, chunks_init)
