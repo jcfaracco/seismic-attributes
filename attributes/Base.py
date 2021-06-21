@@ -61,7 +61,6 @@ class BaseAttributes(object):
                 
         else:
             chunks_init = darray.chunks
-            print(chunks_init)
         
         # Ghost Dask Array if operation specifies a kernel
         if kernel != None:
