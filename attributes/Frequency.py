@@ -11,10 +11,9 @@ Frequency attributes for Seismic data
 import dask.array as da
 import numpy as np
 from scipy import signal
-import util
 
-from Base import BaseAttributes
-
+from . import util
+from .Base import BaseAttributes
 
 
 class Frequency(BaseAttributes):

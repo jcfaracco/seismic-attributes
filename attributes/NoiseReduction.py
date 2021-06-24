@@ -11,9 +11,9 @@ Noise Reduction attributes for Seismic Data
 import dask.array as da
 import numpy as np
 from scipy import ndimage as ndi
-import util
 
-from Base import BaseAttributes
+from . import util
+from .Base import BaseAttributes
 
 
 class NoiseReduction(BaseAttributes):

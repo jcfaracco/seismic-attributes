@@ -11,10 +11,10 @@ Dip & Azimuth Calculations for Seismic Data
 import numpy as np
 import dask.array as da
 from scipy import ndimage as ndi
-import util
 
-from Base import BaseAttributes
-from SignalProcess import SignalProcess as sp
+from . import util
+from .Base import BaseAttributes
+from .SignalProcess import SignalProcess as sp
 
 
 class DipAzm(BaseAttributes):

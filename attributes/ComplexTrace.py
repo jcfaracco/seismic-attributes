@@ -10,10 +10,11 @@ Complex Trace Attributes for Seismic Data
 # Import Libraries
 import dask.array as da
 import numpy as np
-import util
 
-from Base import BaseAttributes
-from SignalProcess import SignalProcess as sp
+
+from . import util
+from .Base import BaseAttributes
+from .SignalProcess import SignalProcess as sp
 
 
 class ComplexAttributes(BaseAttributes):

@@ -12,9 +12,9 @@ import dask.array as da
 import numpy as np
 from scipy import ndimage as ndi
 from scipy import signal
-import util
 
-from Base import BaseAttributes
+from . import util
+from .Base import BaseAttributes
 
 
 class SignalProcess(BaseAttributes):

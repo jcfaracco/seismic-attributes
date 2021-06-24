@@ -86,5 +86,5 @@ def segy_write(in_data, template_segy, out_file):
                 il = f.ilines[i]
                 f.iline[il] = in_data[i]
                 
-            except Exception:
-                continue
+            except Exception as e:
+                print("Unable to write segy file due to: {e}".format(e=str(e)))

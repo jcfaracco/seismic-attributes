@@ -10,7 +10,8 @@ Base Attributes for Seismic Data
 # Import Libraries
 import dask.array as da
 import numpy as np
-import util
+
+from . import util
 
 
 class BaseAttributes(object):

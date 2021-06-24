@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Complex Trace Attributes for Seismic Data
+Local Binary Pattern Attributes for Seismic Data
 
 @author: Julio Faracco
 @email: jcfaracco@gmail.com
@@ -10,9 +10,9 @@ Complex Trace Attributes for Seismic Data
 # Import Libraries
 import dask.array as da
 import numpy as np
-import util
 
-from Base import BaseAttributes
+from . import util
+from .Base import BaseAttributes
 
 from skimage.feature import local_binary_pattern
 from scipy.interpolate import RegularGridInterpolator as RGI
