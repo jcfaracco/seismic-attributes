@@ -84,7 +84,11 @@ class LBPAttributes(BaseAttributes):
     def local_binary_pattern_diag_3d(self, darray, preview=None):
 
         hw = (2, 0, 0)
-        kernel = (min(int((darray.shape[0] + 4)/4), 1000), darray.shape[1], darray.shape[2])
+
+        if USE_CUPY:
+            kernel = (darray.shape[0], darray.shape[1], darray.shape[2])
+        else:
+            kernel = (min(int((darray.shape[0] + 4)/4), 1000), darray.shape[1], darray.shape[2])
 
         if not isinstance(darray, da.core.Array):
             darray = da.from_array(darray, chunks=kernel)
