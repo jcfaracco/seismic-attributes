@@ -214,8 +214,8 @@ class LBPAttributes(BaseAttributes):
             inp = cp.asarray(block, dtype=cp.float32)
 
             # Numpy is faster than Cupy for min and max
-            min_local = np.min(new_cube.flatten())
-            max_local = np.max(new_cube.flatten())
+            min_local = np.min(block.flatten())
+            max_local = np.max(block.flatten())
 
             block_size = 10
 
