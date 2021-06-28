@@ -11,6 +11,13 @@ Local Binary Pattern Attributes for Seismic Data
 import dask.array as da
 import numpy as np
 
+try:
+    import cupy as cp
+
+    USE_CUPY = True
+except:
+    USE_CUPY = False
+
 from . import util
 from .Base import BaseAttributes
 
@@ -108,7 +115,129 @@ class LBPAttributes(BaseAttributes):
                         img_lbp[ih+1,iw+1,iz+1] = num
             return(img_lbp)
 
-        lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d, dtype=darray.dtype)
+        def __local_binary_pattern_diag_3d_cu(block):
+            __lbp_gpu = cp.RawKernel(r'''
+                extern "C" __global__
+                void local_binary_pattern_gpu(const float *a, float *out,
+                                              float max_local, float min_local,
+                                              unsigned int nx, unsigned int ny,
+                                              unsigned int nz) {
+                    unsigned int idx = threadIdx.x + blockIdx.x * blockDim.x;
+                    unsigned int idy = threadIdx.y + blockIdx.y * blockDim.y;
+                    unsigned int idz = threadIdx.z + blockIdx.z * blockDim.z;
+                    int i, j, k;
+                    float max, min;
+                    unsigned int center, index, kernel_idx;
+                    unsigned int max_idx, min_idx;
+                    float exp, sum, mult, n;
+
+                    unsigned char kernel[27] = {
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    };
+
+                    max = min_local - 1;
+                    min = max_local + 1;
+
+                    if ((idx > 0 && idy > 0 && idz > 0) &&
+                        (idx < nx) && (idy < ny) && (idz < nz)) {
+                        center = ((ny * nx) * idz) + (idy * nx + idx);
+
+                        for(i = -1; i <= 1; i = i + 2) {
+                            for(j = -1; j <= 1; j = j + 2) {
+                                for(k = -1; k <= 1; k = k + 2) {
+                                    /* Avoid illegal memory access */
+                                    if ((idx + i >= nx || idy + j >= ny || idz + k >= nz) ||
+                                        (idx + i < 0 || idy + j < 0 || idz + k < 0)) {
+                                        continue;
+                                    }
+
+                                    index = ((ny * nx) * (idz + k)) + ((idy + j) * nx + (idx + i));
+                                    kernel_idx = (9 * (k + 1)) + ((j + 1) * 3 + (i + 1));
+
+                                    if (max < a[index]) {
+                                        if (a[center] < a[index]) {
+                                            max = a[index];
+                                            max_idx = kernel_idx;
+                                        }
+                                    }
+
+                                    if (min > a[index]) {
+                                        if (a[center] > a[index]) {
+                                            min = a[index];
+                                            min_idx = kernel_idx;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (max < max_local + 1 && max > min_local - 1) {
+                            kernel[max_idx] = 1;
+                        }
+
+                        if (min > min_local - 1 && min < max_local + 1) {
+                            kernel[min_idx] = 1;
+                        }
+
+                        mult = exp = sum = 0;
+
+                        for(k = 0; k <= 2; k = k + 2) {
+                            for(j = 0; j <= 2; j = j + 2) {
+                                for(i = 0; i <= 2; i = i + 2) {
+                                    if (kernel[(9 * k) + (j * 3 + i)] == 1) {
+                                        /* Implementing our own pow() function */
+                                        n = 0;
+                                        mult = 1;
+                                        while(n < exp) {
+                                            mult *= 2;
+                                            n++;
+                                        }
+                                        sum += mult;
+                                    }
+                                    exp++;
+                                }
+                            }
+                        }
+
+                        out[center] = sum;
+                    }
+                }
+            ''', 'local_binary_pattern_gpu')
+
+            dimz = block.shape[0]
+            dimy = block.shape[1]
+            dimx = block.shape[2]
+
+            out = cp.zeros((dimz * dimy * dimx), dtype=cp.float32)
+            inp = cp.asarray(block, dtype=cp.float32)
+
+            # Numpy is faster than Cupy for min and max
+            min_local = np.min(new_cube.flatten())
+            max_local = np.max(new_cube.flatten())
+
+            block_size = 10
+
+            grid = (int(np.ceil(dimz/block_size)),
+                    int(np.ceil(dimy/block_size)),
+                    int(np.ceil(dimx/block_size)),)
+            block = (block_size, block_size, block_size,)
+
+            __lbp_gpu(grid, block, (inp, out, cp.float32(max_local),
+                                    cp.float32(min_local), cp.int32(dimx),
+                                    cp.int32(dimy), cp.int32(dimz)))
+
+            unique_array = cp.unique(out)
+            for i, e in enumerate(unique_array):
+                out[out == e] = i
+
+            return(cp.asnumpy(out).reshape(dimz, dimy, dimx))
+
+        if USE_CUPY:
+            lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu, dtype=cp.float32)
+        else:
+            lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d, dtype=darray.dtype)
         result = util.trim_dask_array(lbp_diag_3d, kernel, hw)
 
         return(result)
