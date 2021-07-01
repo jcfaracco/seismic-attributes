@@ -68,10 +68,10 @@ class GLCMAttributes(BaseAttributes):
 
             new_atts = list()
             for k in range(d):
-                new_att = np.zeros((h,w), dtype=np.float32)
+                new_att = np.zeros((h, w), dtype=np.float32)
 
                 bins = np.linspace(mi, ma + 1, levels)
-                gl = np.digitize(block[d, :, :], bins) - 1
+                gl = np.digitize(block[k, :, :], bins) - 1
 
                 for i in range(h):
                     for j in range(w):
