@@ -87,9 +87,9 @@ class GLCMAttributes(BaseAttributes):
 
 
     def glcm_contrast(self, darray, preview=None):
-        return self._glcm_generic(darray, "contrast", levels)
+        return self._glcm_generic(darray, "contrast")
 
     def glcm_dissimilarity(self, darray, preview=None):
-        return self._glcm_generic(darray, "dissimilarity", levels)
+        return self._glcm_generic(darray, "dissimilarity")
 
 
