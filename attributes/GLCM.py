@@ -59,6 +59,9 @@ class GLCMAttributes(BaseAttributes):
         kernel = (1, 1, darray.shape[2])
         darray, chunks_init = self.create_array(darray, kernel, preview=preview)
 
+        mi = da.min(darray)
+        ma = da.max(darray)
+
         def __glcm_block(block, block_info=None):
             d, h, w,  = block.shape
             kh = kw = distance
@@ -66,6 +69,10 @@ class GLCMAttributes(BaseAttributes):
             new_atts = list()
             for k in range(d):
                 new_att = np.zeros((h,w), dtype=np.float32)
+
+                bins = np.linspace(mi, ma + 1, levels)
+                gl = np.digitize(block[d, :, :], bins) - 1
+
                 for i in range(h):
                     for j in range(w):
                         #windows needs to fit completely in image
@@ -75,14 +82,14 @@ class GLCMAttributes(BaseAttributes):
                             continue
 
                         #Calculate GLCM on a 7x7 window
-                        glcm_window = block[k, i - kh:i + kh + 1, j - kw:j + kw + 1]
+                        glcm_window = gl[i - kh:i + kh + 1, j - kw:j + kw + 1].astype(int)
                         glcm = greycomatrix(glcm_window, [distance],
                                             [direction], levels=levels,
                                             symmetric=True, normed=True)
 
                         #Calculate contrast and replace center pixel
                         new_att[i, j] = greycoprops(glcm, glcm_type)
-                new_atts.append(new_att)
+                new_atts.append(new_att.astype(darray.type))
 
             return da.from_delayed(news_atts,dtype=darray.dtype,
                                    shape=darray.shape)
