@@ -56,11 +56,11 @@ class GLCMAttributes(BaseAttributes):
         result : Dask Array
         """
 
-        kernel = (1,1, darray.shape[2])
+        kernel = (1, 1, darray.shape[2])
         darray, chunks_init = self.create_array(darray, kernel, preview=preview)
 
         def __glcm_block(block, block_info=None):
-            h, w = block.shape
+            _, h, w,  = block.shape
             kh = kw = distance
 
             new_att = np.zeros((h,w), dtype=np.float32)
