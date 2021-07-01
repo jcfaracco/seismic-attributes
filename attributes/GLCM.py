@@ -56,7 +56,7 @@ class GLCMAttributes(BaseAttributes):
         result : Dask Array
         """
 
-        kernel = (1, 1, darray.shape[2])
+        kernel = (1, darray.shape[1], darray.shape[2])
         darray, chunks_init = self.create_array(darray, kernel, preview=preview)
 
         mi = da.min(darray)
