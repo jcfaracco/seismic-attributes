@@ -60,25 +60,32 @@ class GLCMAttributes(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel, preview=preview)
 
         def __glcm_block(block, block_info=None):
-            _, h, w,  = block.shape
+            d, h, w,  = block.shape
             kh = kw = distance
 
-            new_att = np.zeros((h,w), dtype=np.float32)
-            for i in range(h):
-                for j in range(w):
-                    #windows needs to fit completely in image
-                    if i < kh or j < kw:
-                        continue
-                    if i > (h - kh - 1) or j > (w - kw - 1):
-                        continue
+            new_atts = list()
+            for k in range(d):
+                new_att = np.zeros((h,w), dtype=np.float32)
+                for i in range(h):
+                    for j in range(w):
+                        #windows needs to fit completely in image
+                        if i < kh or j < kw:
+                            continue
+                        if i > (h - kh - 1) or j > (w - kw - 1):
+                            continue
 
-                    #Calculate GLCM on a 7x7 window
-                    glcm_window = block[i - kh:i + kh + 1, j - kw:j + kw + 1]
-                    glcm = greycomatrix(glcm_window, [distance], [direction], levels=levels, symmetric=True, normed=True)
+                        #Calculate GLCM on a 7x7 window
+                        glcm_window = block[i - kh:i + kh + 1, j - kw:j + kw + 1]
+                        glcm = greycomatrix(glcm_window, [distance],
+                                            [direction], levels=levels,
+                                            symmetric=True, normed=True)
 
-                    #Calculate contrast and replace center pixel
-                    new_att[i, j] = greycoprops(glcm, glcm_type)
-            return new_att
+                        #Calculate contrast and replace center pixel
+                        new_att[i, j] = greycoprops(glcm, glcm_type)
+                new_atts.append(new_att)
+
+            return da.from_delayed(news_atts,dtype=darray.dtype,
+                                   shape=darray.shape)
 
         glcm = darray.map_blocks(__glcm_block, dtype=darray.dtype)
         result = util.trim_dask_array(glcm, kernel)
