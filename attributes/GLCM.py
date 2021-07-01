@@ -75,7 +75,7 @@ class GLCMAttributes(BaseAttributes):
                             continue
 
                         #Calculate GLCM on a 7x7 window
-                        glcm_window = block[i - kh:i + kh + 1, j - kw:j + kw + 1]
+                        glcm_window = block[k, i - kh:i + kh + 1, j - kw:j + kw + 1]
                         glcm = greycomatrix(glcm_window, [distance],
                                             [direction], levels=levels,
                                             symmetric=True, normed=True)
