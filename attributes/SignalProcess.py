@@ -187,13 +187,20 @@ class SignalProcess(BaseAttributes):
 
         # Function to interpolate seismic to new scaling
         def interp(chunk, cdf, bins):
-            out = np.interp(chunk.ravel(), bins, cdf)
+            if USE_CUPY and self._use_cuda:
+                out = cp.interp(chunk.ravel(), bins, cdf)
+            else:
+                out = np.interp(chunk.ravel(), bins, cdf)
 
             return(out.reshape(chunk.shape))
 
         darray, chunks_init = self.create_array(darray, preview=preview)
-        hist, bins = da.histogram(darray, bins=np.linspace(darray.min(), darray.max(),
-                                                           256, dtype=darray.dtype))
+        if USE_CUPY and self._use_cuda:
+            hist, bins = da.histogram(darray, bins=cp.linspace(darray.min(), darray.max(),
+                                                               256, dtype=darray.dtype))
+        else:
+            hist, bins = da.histogram(darray, bins=np.linspace(darray.min(), darray.max(),
+                                                               256, dtype=darray.dtype))
         cdf = hist.cumsum(axis=-1)
         cdf = cdf / cdf[-1]
         bins = (bins[:-1] + bins[1:]) / 2
@@ -293,7 +300,10 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             x = util.extract_patches(chunk, kernel)
-            out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
+            if USE_CUPY and self.__use_cuda:
+                out = cp.sqrt(cp.mean(x ** 2, axis=(-3, -2, -1)))
+            else:
+                out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
 
             return(out)
 
@@ -406,7 +416,10 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             x = util.extract_patches(chunk, (1, 1, kernel[-1]))
-            out = np.trapz(x).reshape(x.shape[:3])
+            if USE_CUPY and self.__use_cuda:
+                out = cp.trapz(x).reshape(x.shape[:3])
+            else:
+                out = np.trapz(x).reshape(x.shape[:3])
 
             return(out)
 
