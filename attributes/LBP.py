@@ -97,7 +97,7 @@ class LBPAttributes(BaseAttributes):
 
         hw = (2, 0, 0)
 
-        if USE_CUPY and self.__use_cuda:
+        if USE_CUPY and self._use_cuda:
             kernel = (darray.shape[0], darray.shape[1], darray.shape[2])
         else:
             kernel = (min(int((darray.shape[0] + 4)/4), 1000), darray.shape[1], darray.shape[2])

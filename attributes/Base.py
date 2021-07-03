@@ -42,9 +42,9 @@ class BaseAttributes(object):
         ----------
         use_cuda : Boolean, variable to set CUDA usage
         """
-        self.__use_cuda = use_cuda
+        self._use_cuda = use_cuda
 
-        if not USE_CUPY and self.__use_cuda:
+        if not USE_CUPY and self._use_cuda:
             print("Warning: skipping CUDA usage. Check if this system "
                   "supports CUDA or if it installed", file=sys.stderr)
 

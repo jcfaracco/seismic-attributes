@@ -87,7 +87,7 @@ class SignalProcess(BaseAttributes):
         axes = [ax for ax in range(darray.ndim) if ax != axis]
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self.__use_cuda:
+        if USE_CUPY and self._use_cuda:
             result0 = darray.map_blocks(cundi.correlate1d, weights=[-0.5, 0, 0.5],
                                         axis=axis, dtype=darray.dtype)
             result1 = result0.map_blocks(cundi.correlate1d,
@@ -138,7 +138,7 @@ class SignalProcess(BaseAttributes):
         axes = [ax for ax in range(darray.ndim) if ax != axis]
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self.__use_cuda:
+        if USE_CUPY and self._use_cuda:
             result0 = darray.map_blocks(cundi.correlate1d,
                                         weights=[0.232905, 0.002668, -0.471147, 0.002668, 0.232905],
                                         axis=axis, dtype=darray.dtype)
@@ -367,7 +367,7 @@ class SignalProcess(BaseAttributes):
         kernel = tuple(2 * (4 * np.array(sigmas) + 0.5).astype(int) + 1)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self.__use_cuda:
+        if USE_CUPY and self._use_cuda:
             result = darray.map_blocks(cundi.gaussian_gradient_magnitude,
                                        sigma=sigmas, dtype=darray.dtype)
         else:
@@ -447,7 +447,7 @@ class SignalProcess(BaseAttributes):
         kernel = (1, 1, 25)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self.__use_cuda:
+        if USE_CUPY and self._use_cuda:
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
