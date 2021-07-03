@@ -443,7 +443,11 @@ class SignalProcess(BaseAttributes):
         result : Dask Array
         """
 
-        phi = np.deg2rad(rotation)
+        if USE_CUPY and self._use_cuda:
+            phi = cp.deg2rad(rotation)
+        else:
+            phi = np.deg2rad(rotation)
+
         kernel = (1, 1, 25)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
