@@ -12,6 +12,14 @@ import dask.array as da
 import numpy as np
 from scipy import signal
 
+try:
+    import cupy as cp
+    import cusignal
+
+    USE_CUPY = True
+except:
+    USE_CUPY = False
+
 from . import util
 from .Base import BaseAttributes
 
@@ -30,6 +38,17 @@ class Frequency(BaseAttributes):
     cwt_ricker
     cwt_ormsby
     """
+    def __init__(self, use_cuda=False):
+        """
+        Description
+        -----------
+        Constructor of Frequency attribute class.
+
+        Keywork Arguments
+        ----------
+        use_cuda : Boolean, variable to set CUDA usage
+        """
+        super().__init__(use_cuda=use_cuda)
 
     def lowpass_filter(self, darray, freq, sample_rate=4, preview=None):
         """
@@ -57,8 +76,10 @@ class Frequency(BaseAttributes):
         
         # Filtering Function
         def filt(chunk, B, A):
-            
-            out = signal.filtfilt(B, A, x=chunk)
+            if USE_CUPY and self._use_cuda:
+                out = cusignal.filtfilt(B, A, x=chunk)
+            else:
+                out = signal.filtfilt(B, A, x=chunk)
             
             return(out)
         
@@ -98,8 +119,10 @@ class Frequency(BaseAttributes):
         
         # Filtering Function
         def filt(chunk, B, A):
-            
-            out = signal.filtfilt(B, A, x=chunk)
+            if USE_CUPY and self._use_cuda:
+                out = cusignal.filtfilt(B, A, x=chunk)
+            else:
+                out = signal.filtfilt(B, A, x=chunk)
             
             return(out)
         
@@ -141,9 +164,11 @@ class Frequency(BaseAttributes):
         
         # Filtering Function
         def filt(chunk, B, A):
-            
-            out = signal.filtfilt(B, A, x=chunk)
-            
+            if USE_CUPY and self._use_cuda:
+                out = cusignal.filtfilt(B, A, x=chunk)
+            else:
+                out = signal.filtfilt(B, A, x=chunk)
+
             return(out)
         
         # Generate Dask Array as necessary and perform algorithm
@@ -237,7 +262,11 @@ class Frequency(BaseAttributes):
             
             f1, f2, f3, f4 = freqs
             sr = sample_rate / 1000            
-            t = np.arange(-0.512 / 2, 0.512 / 2, sr)
+
+            if USE_CUPY and self._use_cuda:
+                t = cp.arange(-0.512 / 2, 0.512 / 2, sr)
+            else:
+                t = np.arange(-0.512 / 2, 0.512 / 2, sr)
             
             term1 = (((np.pi * f4) ** 2) / ((np.pi * f4) - (np.pi * f3))) * np.sinc(np.pi * f4 * t) ** 2
             term2 = (((np.pi * f3) ** 2) / ((np.pi * f4) - (np.pi * f3))) * np.sinc(np.pi * f3 * t) ** 2
@@ -251,10 +280,16 @@ class Frequency(BaseAttributes):
         # Convolve wavelet with trace
         def convolve(chunk, w):
             
-            out = np.zeros(chunk.shape)
+            if USE_CUPY and self._use_cuda:
+                out = cp.zeros(chunk.shape)
+            else:
+                out = np.zeros(chunk.shape)
             
             for i,j in np.ndindex(chunk.shape[:-1]):                
-                out[i, j] = signal.fftconvolve(chunk[i, j], w, mode='same')
+                if USE_CUPY and self._use_cuda:
+                    out[i, j] = cusignal.fftconvolve(chunk[i, j], w, mode='same')
+                else:
+                    out[i, j] = signal.fftconvolve(chunk[i, j], w, mode='same')
                 
             return(out)
         
