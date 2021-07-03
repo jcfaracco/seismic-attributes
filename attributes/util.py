@@ -13,6 +13,13 @@ import numpy as np
 import h5py
 import psutil
 
+try:
+    import cupy as cp
+
+    USE_CUPY = True
+except Exception:
+    USE_CUPY = False
+
 # Ignore warning
 import warnings
 warnings.filterwarnings("ignore")
@@ -260,7 +267,7 @@ def convert_dtype(in_data, min_val, max_val, to_dtype):
     
     
     
-def extract_patches(in_data, kernel):
+def extract_patches(in_data, kernel, use_cuda=False):
     """
     Description
     -----------
@@ -278,12 +285,20 @@ def extract_patches(in_data, kernel):
     """
     
     strides = in_data.strides + in_data.strides
-    shape = (np.array(in_data.shape) - np.array(kernel)) + 1
-    shape = tuple(list(shape) + list(kernel))
+    if USE_CUDA and use_cuda:
+        shape = (cp.array(in_data.shape) - cp.array(kernel)) + 1
+        shape = tuple(list(shape) + list(kernel))
+
+        patches = cp.lib.stride_tricks.as_strided(in_data,
+                                                  shape=shape,
+                                                  strides=strides)
+    else:
+        shape = (np.array(in_data.shape) - np.array(kernel)) + 1
+        shape = tuple(list(shape) + list(kernel))
     
-    patches = np.lib.stride_tricks.as_strided(in_data,
-                                              shape=shape,
-                                              strides=strides)        
+        patches = np.lib.stride_tricks.as_strided(in_data,
+                                                  shape=shape,
+                                                  strides=strides)
     return(patches)
     
     
