@@ -37,6 +37,18 @@ class LBPAttributes(BaseAttributes):
     -------
     local_binary_pattern_2d
     """
+    def __init__(self, use_cuda=False):
+        """
+        Description
+        -----------
+        Constructor of LBP attribute class.
+
+        Keywork Arguments
+        ----------
+        use_cuda : Boolean, variable to set CUDA usage
+        """
+        super(BaseAttributes, self).__init__(use_cuda=use_cuda)
+
     def local_binary_pattern_2d(self, darray, preview=None):
         """
         Description
@@ -85,7 +97,7 @@ class LBPAttributes(BaseAttributes):
 
         hw = (2, 0, 0)
 
-        if USE_CUPY:
+        if USE_CUPY and self.__use_cuda:
             kernel = (darray.shape[0], darray.shape[1], darray.shape[2])
         else:
             kernel = (min(int((darray.shape[0] + 4)/4), 1000), darray.shape[1], darray.shape[2])
