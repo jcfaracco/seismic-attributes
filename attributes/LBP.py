@@ -47,7 +47,7 @@ class LBPAttributes(BaseAttributes):
         ----------
         use_cuda : Boolean, variable to set CUDA usage
         """
-        super(BaseAttributes, self).__init__(use_cuda=use_cuda)
+        super().__init__(use_cuda=use_cuda)
 
     def local_binary_pattern_2d(self, darray, preview=None):
         """

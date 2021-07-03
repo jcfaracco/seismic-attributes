@@ -58,7 +58,7 @@ class ComplexAttributes(BaseAttributes):
         ----------
         use_cuda : Boolean, variable to set CUDA usage
         """
-        super(BaseAttributes, self).__init__(use_cuda=use_cuda)
+        super().__init__(use_cuda=use_cuda)
 
     def hilbert_transform(self, darray, preview=None):
         """

@@ -57,7 +57,7 @@ class SignalProcess(BaseAttributes):
         -----------------
         use_cuda : Boolean, variable to set CUDA usage
         """
-        super(BaseAttributes, self).__init__(use_cuda=use_cuda)
+        super().__init__(use_cuda=use_cuda)
 
     def first_derivative(self, darray, axis=-1, preview=None):
         """
