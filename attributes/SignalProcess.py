@@ -194,12 +194,15 @@ class SignalProcess(BaseAttributes):
 
             return(out.reshape(chunk.shape))
 
+        da_max = darray.max()
+        da_min = darray.min()
+
         darray, chunks_init = self.create_array(darray, preview=preview)
         if USE_CUPY and self._use_cuda:
-            hist, bins = da.histogram(darray, bins=cp.linspace(darray.min(), darray.max(),
+            hist, bins = da.histogram(darray, bins=cp.linspace(da_min, da_max,
                                                                256, dtype=darray.dtype))
         else:
-            hist, bins = da.histogram(darray, bins=np.linspace(darray.min(), darray.max(),
+            hist, bins = da.histogram(darray, bins=np.linspace(da_min, da_max,
                                                                256, dtype=darray.dtype))
         cdf = hist.cumsum(axis=-1)
         cdf = cdf / cdf[-1]
