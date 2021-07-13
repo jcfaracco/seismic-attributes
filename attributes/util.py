@@ -285,7 +285,7 @@ def extract_patches(in_data, kernel, use_cuda=False):
     """
     
     strides = in_data.strides + in_data.strides
-    if USE_CUDA and use_cuda:
+    if USE_CUPY and use_cuda:
         shape = (cp.array(in_data.shape) - cp.array(kernel)) + 1
         shape = tuple(list(shape) + list(kernel))
 
