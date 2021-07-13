@@ -303,7 +303,7 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             x = util.extract_patches(chunk, kernel)
-            if USE_CUPY and self.__use_cuda:
+            if USE_CUPY and self._use_cuda:
                 out = cp.sqrt(cp.mean(x ** 2, axis=(-3, -2, -1)))
             else:
                 out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
@@ -419,7 +419,7 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             x = util.extract_patches(chunk, (1, 1, kernel[-1]))
-            if USE_CUPY and self.__use_cuda:
+            if USE_CUPY and self._use_cuda:
                 out = cp.trapz(x).reshape(x.shape[:3])
             else:
                 out = np.trapz(x).reshape(x.shape[:3])
