@@ -48,6 +48,9 @@ class BaseAttributes(object):
             print("Warning: skipping CUDA usage. Check if this system "
                   "supports CUDA or if it installed", file=sys.stderr)
 
+    def set_cuda(self, use_cuda: bool):
+        self._use_cuda = use_cuda
+
     def create_array(self, darray, kernel=None, hw=None, boundary='reflect',
                      preview=None):
         """
