@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
-import setuptools
+from setuptools import setup, find_packages
 
 long_description = \
 "This project was originally implemented by " \
@@ -10,7 +10,7 @@ long_description = \
 "some optimizations to help geologists to " \
 "to calculate them."
 
-setuptools.setup(
+setup(
     name="d2geo",
     version="1.0.0",
     author="Julio Cesar Faracco",
@@ -32,6 +32,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     platforms='any',
-    packages=setuptools.find_packages(where="."),
+    packages=find_packages(),
     python_requires=">=3.6",
 )
