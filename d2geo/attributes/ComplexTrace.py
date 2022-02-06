@@ -186,6 +186,7 @@ class ComplexAttributes(BaseAttributes):
         else:
             if USE_CUPY and self._use_cuda:
                 analytical_trace = cusignal.hilbert(darray)
+                analytical_trace = analytical_trace.astype(cp.float64)
                 result = cp.rad2deg(analytical_trace, dtype=cp.float64)
             else:
                 analytical_trace = util.hilbert(darray)
