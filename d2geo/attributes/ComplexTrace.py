@@ -181,12 +181,15 @@ class ComplexAttributes(BaseAttributes):
             else:
                 analytical_trace = darray.map_blocks(util.hilbert,
                                                      dtype=darray.dtype)
+            result = da.rad2deg(da.angle(analytical_trace))
+            result = util.trim_dask_array(result, kernel)
         else:
             if USE_CUPY and self._use_cuda:
                 analytical_trace = cusignal.hilbert(darray)
                 result = cp.rad2deg(analytical_trace, dtype=cp.float64)
             else:
                 analytical_trace = util.hilbert(darray)
+                print(analytical_trace.dtype)
                 result = np.rad2deg(analytical_trace, dtype='float')
 
         return(result)
