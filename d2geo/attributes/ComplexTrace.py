@@ -189,8 +189,8 @@ class ComplexAttributes(BaseAttributes):
                 result = cp.rad2deg(analytical_trace, dtype=cp.float64)
             else:
                 analytical_trace = util.hilbert(darray)
-                print(analytical_trace.dtype)
-                result = np.rad2deg(analytical_trace, dtype='float')
+                analytical_trace = analytical_trace.astype(np.float64)
+                result = np.rad2deg(analytical_trace, dtype=np.float64)
 
         return(result)
 
