@@ -187,7 +187,7 @@ class ComplexAttributes(BaseAttributes):
                 result = cp.rad2deg(analytical_trace, dtype=cp.float64)
             else:
                 analytical_trace = util.hilbert(darray)
-                result = np.rad2deg(analytical_trace)
+                result = np.rad2deg(analytical_trace, dtype=np.float64)
 
         return(result)
 
@@ -224,7 +224,7 @@ class ComplexAttributes(BaseAttributes):
                 result = cp.rad2deg(cp.angle(phase), dtype=cp.float64)
             else:
                 phase = self.instantaneous_phase(darray)
-                result = np.rad2deg(np.angle(phase))
+                result = np.rad2deg(np.angle(phase), dtype=np.float64)
 
         return(result)
 
