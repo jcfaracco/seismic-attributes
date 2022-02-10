@@ -165,9 +165,9 @@ class EdgeDetection(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel, preview)
 
         # Compute I, J, K gradients
-        gi = sp().first_derivative(darray, axis=0)
-        gj = sp().first_derivative(darray, axis=1)
-        gk = sp().first_derivative(darray, axis=2)
+        gi = sp(self._use_cuda).first_derivative(darray, axis=0)
+        gj = sp(self._use_cuda).first_derivative(darray, axis=1)
+        gk = sp(self._use_cuda).first_derivative(darray, axis=2)
 
         # Compute the Inner Product of the Gradients
         if USE_CUPY and self._use_cuda:
@@ -315,9 +315,9 @@ class EdgeDetection(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel, preview)
 
         # Compute I, J, K gradients
-        gi = sp().first_derivative(darray, axis=0)
-        gj = sp().first_derivative(darray, axis=1)
-        gk = sp().first_derivative(darray, axis=2)
+        gi = sp(self._use_cuda).first_derivative(darray, axis=0)
+        gj = sp(self._use_cuda).first_derivative(darray, axis=1)
+        gk = sp(self._use_cuda).first_derivative(darray, axis=2)
 
         # Compute the Inner Product of the Gradients
         if USE_CUPY and self._use_cuda:
@@ -400,12 +400,12 @@ class EdgeDetection(BaseAttributes):
         w = da.ones_like(u, chunks=u.chunks)
 
         # Compute Gradients
-        ux = sp().first_derivative(u, axis=0)
-        uy = sp().first_derivative(u, axis=1)
-        uz = sp().first_derivative(u, axis=2)
-        vx = sp().first_derivative(v, axis=0)
-        vy = sp().first_derivative(v, axis=1)
-        vz = sp().first_derivative(v, axis=2)
+        ux = sp(self._use_cuda).first_derivative(u, axis=0)
+        uy = sp(self._use_cuda).first_derivative(u, axis=1)
+        uz = sp(self._use_cuda).first_derivative(u, axis=2)
+        vx = sp(self._use_cuda).first_derivative(v, axis=0)
+        vy = sp(self._use_cuda).first_derivative(v, axis=1)
+        vz = sp(self._use_cuda).first_derivative(v, axis=2)
 
         # Smooth Gradients
         if USE_CUPY and self._use_cuda:

@@ -32,7 +32,7 @@ class BaseAttributes(object):
     -------
     create_array
     """
-    def __init__(self, use_cuda=False, use_dask=True):
+    def __init__(self, use_cuda=False):
         """
         Description
         -----------
@@ -43,7 +43,6 @@ class BaseAttributes(object):
         use_cuda : Boolean, variable to set CUDA usage
         """
         self._use_cuda = use_cuda
-        self._use_dask = use_dask
 
         if not USE_CUPY and self._use_cuda:
             print("Warning: skipping CUDA usage. Check if this system "
@@ -51,9 +50,6 @@ class BaseAttributes(object):
 
     def set_cuda(self, use_cuda: bool):
         self._use_cuda = use_cuda
-
-    def set_dask(self, use_dask: bool):
-        self._use_dask = use_dask
 
     def create_array(self, darray, kernel=None, hw=None, boundary='reflect',
                      preview=None):

@@ -48,7 +48,7 @@ class ComplexAttributes(BaseAttributes):
     response_amplitude
     apparent_polarity
     """
-    def __init__(self, use_cuda=False, use_dask=True):
+    def __init__(self, use_cuda=False):
         """
         Description
         -----------
@@ -83,23 +83,16 @@ class ComplexAttributes(BaseAttributes):
         result : Dask Array
         """
 
-        if self._use_dask:
-            kernel = (1, 1, 25)
-            darray, chunks_init = self.create_array(darray, kernel,
-                                                    preview=preview)
-            if USE_CUPY and self._use_cuda:
-                analytical_trace = darray.map_blocks(cusignal.hilbert,
-                                                     dtype=darray.dtype)
-            else:
-                analytical_trace = darray.map_blocks(util.hilbert,
-                                                     dtype=darray.dtype)
-            result = util.trim_dask_array(analytical_trace, kernel)
+        kernel = (1, 1, 25)
+        darray, chunks_init = self.create_array(darray, kernel,
+                                                preview=preview)
+        if USE_CUPY and self._use_cuda:
+            analytical_trace = darray.map_blocks(cusignal.hilbert,
+                                                 dtype=darray.dtype)
         else:
-            print(len(darray))
-            if USE_CUPY and self._use_cuda:
-                return cusignal.hilbert(darray)
-            else:
-                return util.hilbert(darray)
+            analytical_trace = darray.map_blocks(util.hilbert,
+                                                 dtype=darray.dtype)
+        result = util.trim_dask_array(analytical_trace, kernel)
 
         return(result)
 
@@ -126,25 +119,17 @@ class ComplexAttributes(BaseAttributes):
         result : Dask Array
         """
 
-        if self._use_dask:
-            kernel = (1, 1, 25)
-            darray, chunks_init = self.create_array(darray, kernel,
-                                                    preview=preview)
-            if USE_CUPY and self._use_cuda:
-                analytical_trace = darray.map_blocks(cusignal.hilbert,
-                                                     dtype=darray.dtype)
-            else:
-                analytical_trace = darray.map_blocks(util.hilbert,
-                                                     dtype=darray.dtype)
-            result = da.absolute(analytical_trace)
-            result = util.trim_dask_array(result, kernel)
+        kernel = (1, 1, 25)
+        darray, chunks_init = self.create_array(darray, kernel,
+                                                preview=preview)
+        if USE_CUPY and self._use_cuda:
+            analytical_trace = darray.map_blocks(cusignal.hilbert,
+                                                 dtype=darray.dtype)
         else:
-            if USE_CUPY and self._use_cuda:
-                analytical_trace = cusignal.hilbert(darray)
-                result = cp.absolute(analytical_trace)
-            else:
-                analytical_trace = util.hilbert(darray)
-                result = np.absolute(analytical_trace)
+            analytical_trace = darray.map_blocks(util.hilbert,
+                                                 dtype=darray.dtype)
+        result = da.absolute(analytical_trace)
+        result = util.trim_dask_array(result, kernel)
 
         return(result)
 
@@ -171,27 +156,17 @@ class ComplexAttributes(BaseAttributes):
         result : Dask Array
         """
 
-        if self._use_dask:
-            kernel = (1, 1, 25)
-            darray, chunks_init = self.create_array(darray, kernel,
-                                                    preview=preview)
-            if USE_CUPY and self._use_cuda:
-                analytical_trace = darray.map_blocks(cusignal.hilbert,
-                                                     dtype=darray.dtype)
-            else:
-                analytical_trace = darray.map_blocks(util.hilbert,
-                                                     dtype=darray.dtype)
-            result = da.rad2deg(da.angle(analytical_trace))
-            result = util.trim_dask_array(result, kernel)
+        kernel = (1, 1, 25)
+        darray, chunks_init = self.create_array(darray, kernel,
+                                                preview=preview)
+        if USE_CUPY and self._use_cuda:
+            analytical_trace = darray.map_blocks(cusignal.hilbert,
+                                                 dtype=darray.dtype)
         else:
-            if USE_CUPY and self._use_cuda:
-                analytical_trace = cusignal.hilbert(darray)
-                analytical_trace = analytical_trace.astype(cp.float64)
-                result = cp.rad2deg(analytical_trace, dtype=cp.float64)
-            else:
-                analytical_trace = util.hilbert(darray)
-                analytical_trace = analytical_trace.astype(np.float64)
-                result = np.rad2deg(analytical_trace, dtype=np.float64)
+            analytical_trace = darray.map_blocks(util.hilbert,
+                                                 dtype=darray.dtype)
+        result = da.rad2deg(da.angle(analytical_trace))
+        result = util.trim_dask_array(result, kernel)
 
         return(result)
 
@@ -218,17 +193,9 @@ class ComplexAttributes(BaseAttributes):
         result : Dask Array
         """
 
-        if self._use_dask:
-            darray, chunks_init = self.create_array(darray, preview=preview)
-            phase = self.instantaneous_phase(darray)
-            result = da.rad2deg(da.angle(phase))
-        else:
-            if USE_CUPY and self._use_cuda:
-                phase = self.instantaneous_phase(darray)
-                result = cp.rad2deg(cp.angle(phase), dtype=cp.float64)
-            else:
-                phase = self.instantaneous_phase(darray)
-                result = np.rad2deg(np.angle(phase), dtype='float')
+        darray, chunks_init = self.create_array(darray, preview=preview)
+        phase = self.instantaneous_phase(darray)
+        result = da.rad2deg(da.angle(phase))
 
         return(result)
 
@@ -257,7 +224,7 @@ class ComplexAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
-        env_prime = sp().first_derivative(env, axis=-1)
+        env_prime = sp(self._use_cuda).first_derivative(env, axis=-1)
         result = env_prime / env
         result = da.clip(result, -1, 1)
 
@@ -288,7 +255,7 @@ class ComplexAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         rac = self.relative_amplitude_change(darray)
-        result = sp().first_derivative(rac, axis=-1)
+        result = sp(self._use_cuda).first_derivative(rac, axis=-1)
 
         return(result)
 
@@ -325,7 +292,7 @@ class ComplexAttributes(BaseAttributes):
             phase = phase.map_blocks(cp.unwrap, dtype=darray.dtype)
         else:
             phase = phase.map_blocks(np.unwrap, dtype=darray.dtype)
-        phase_prime = sp().first_derivative(phase, axis=-1)
+        phase_prime = sp(self._use_cuda).first_derivative(phase, axis=-1)
         result = da.absolute((phase_prime / (2.0 * np.pi) * fs))
 
         return(result)
@@ -416,7 +383,7 @@ class ComplexAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         inst_freq = self.instantaneous_frequency(darray, sample_rate)
-        result = sp().first_derivative(inst_freq, axis=-1)
+        result = sp(self._use_cuda).first_derivative(inst_freq, axis=-1)
 
         return(result)
 
