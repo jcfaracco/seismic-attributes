@@ -88,6 +88,7 @@ class SignalProcess(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
         if USE_CUPY and self._use_cuda:
+            axes = cp.array(axes)
             result0 = darray.map_blocks(cundi.correlate1d, weights=cp.array([-0.5, 0, 0.5]),
                                         axis=axis, dtype=darray.dtype)
             result1 = result0.map_blocks(cundi.correlate1d,
