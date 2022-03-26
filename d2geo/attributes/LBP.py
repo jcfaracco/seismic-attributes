@@ -107,6 +107,12 @@ class LBPAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, kernel, hw=hw, boundary='periodic', preview=preview)
 
+        def __local_binary_pattern_unique(block, unique_array):
+            for i in range(len(unique_array)):
+                block[block == unique_array[i]] = i
+
+            return block
+
         def __local_binary_pattern_diag_3d(block):
             img_lbp = np.zeros_like(block)
             neighboor = 3
@@ -115,19 +121,28 @@ class LBPAttributes(BaseAttributes):
                 for iw in range(0, block.shape[1] - neighboor + s0):
                     for iz in range(0, block.shape[2] - neighboor + s0):
                         img = block[ih:ih+neighboor,iw:iw+neighboor,iz:iz+neighboor]
-                        center = img[1,1]
-                        img_aux = (img >= center)*1.0
-                        img_aux_vector = img_aux.flatten()
+                        center = img[1, 1, 1]
+                        img_aux_vector = img.flatten()
 
                         # Delete centroids
-                        del_vec = [0, 2, 6, 8, 9, 11, 15, 17, 18, 20, 24, 26]
+                        del_vec = [1, 3, 4, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 21, 22, 23, 25]
                         img_aux_vector = np.delete(img_aux_vector, del_vec)
 
-                        where_img_aux_vector = np.where(img_aux_vector)[0]
-                        if len(where_img_aux_vector) >= 1:
-                            num = np.sum(2 ** where_img_aux_vector)
-                        else:
-                            num = 0
+                        weights =  2 ** np.arange(len(img_aux_vector), dtype=np.uint64)
+
+                        mask_vec = np.zeros(len(img_aux_vector), dtype=np.int8)
+
+                        idx_max = img_aux_vector.argmax()
+                        idx_min = img_aux_vector.argmin()
+
+                        if img_aux_vector[idx_max] > center:
+                            mask_vec[idx_max] = 1
+
+                        if img_aux_vector[idx_min] < center:
+                            mask_vec[idx_min] = 1
+
+                        num = np.sum(weights * mask_vec)
+
                         img_lbp[ih+1,iw+1,iz+1] = num
             return(img_lbp)
 
@@ -255,5 +270,9 @@ class LBPAttributes(BaseAttributes):
         else:
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d, dtype=darray.dtype)
         result = util.trim_dask_array(lbp_diag_3d, kernel, hw)
+
+        unique = da.unique(result)
+
+        result = result.map_blocks(__local_binary_pattern_unique, unique, dtype=result.dtype)
 
         return(result)
