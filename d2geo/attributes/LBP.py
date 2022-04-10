@@ -255,8 +255,12 @@ class LBPAttributes(BaseAttributes):
                     int(np.ceil(dimx/block_size)),)
             block = (block_size, block_size, block_size,)
 
-            __lbp_gpu(grid, block, (inp, out, cp.float32(max_local.get()),
-                                    cp.float32(min_local.get()), cp.int32(dimx),
+            if not isinstance(darray, da.core.Array):
+                max_local = max_local.get()
+                min_local = min_local.get()
+
+            __lbp_gpu(grid, block, (inp, out, cp.float32(max_local),
+                                    cp.float32(min_local), cp.int32(dimx),
                                     cp.int32(dimy), cp.int32(dimz)))
 
             unique_array = cp.unique(out)
