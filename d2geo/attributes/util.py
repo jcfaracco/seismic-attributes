@@ -146,12 +146,12 @@ def trim_dask_array(in_data, kernel, hw=None):
     -------
     out : Dask Array
     """
-    
+
     # Compute half windows and assign to dict
     if hw is None:
         hw = tuple(np.array(kernel) // 2)
     axes = {0 : hw[0], 1 : hw[1], 2: hw[2]}
-    
+
     return(da.overlap.trim_internal(in_data, axes=axes))
     
     
@@ -170,13 +170,12 @@ def available_volumes(file_path):
     -------
     vols : list, array of volume names in file
     """
-    
+
     # Iterate through HDF5 file and output dataset names
     with h5py.File(file_path) as f:
         vols = [i for i in f]
-    
+
     return(vols)
-    
 
 
 def read(file_path):
@@ -193,12 +192,11 @@ def read(file_path):
     -------
     data : HDF5 dataset, pointer to data on disk
     """
-    
+
     data = h5py.File(file_path)['data']
-    
+
     return(data)
-    
-    
+
 
 def save(out_data, out_file):
     """
@@ -211,14 +209,13 @@ def save(out_data, out_file):
     out_data : Dask Array, data to be saved to disk
     out_file : str, path to file to save to
     """
-    
+
     # Save to disk if object is Dask Array
     try:       
         out_data.to_hdf5(out_file, 'data')
     except Exception:
         raise Exception('Object is not a Dask Array')
-        
-        
+
 
 def convert_dtype(in_data, min_val, max_val, to_dtype):
     """
@@ -238,14 +235,11 @@ def convert_dtype(in_data, min_val, max_val, to_dtype):
     -------
     out : Dask Array, converted data
     """
-    
+
     # Check if data is already in correct format
     if in_data.dtype == to_dtype:
         return(in_data)
-        
-    
     else:              
-        
         in_data = da.clip(in_data, min_val, max_val)        
         if to_dtype == np.int8:
             in_data = ((in_data - min_val) / (max_val - min_val))
@@ -262,11 +256,10 @@ def convert_dtype(in_data, min_val, max_val, to_dtype):
             
         else:
             raise Exception('Not a valid dtype')
-    
+
     return(out)
-    
-    
-    
+
+
 def extract_patches(in_data, kernel, use_cuda=False):
     """
     Description

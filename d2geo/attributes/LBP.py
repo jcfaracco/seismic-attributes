@@ -173,7 +173,7 @@ class LBPAttributes(BaseAttributes):
 
                     if ((idx > 0 && idy > 0 && idz > 0) &&
                         (idx < nx) && (idy < ny) && (idz < nz)) {
-                        center = ((ny * nx) * idz) + (idy * nx + idx);
+                        center = ((ny * nz) * idx) + (idy * nz + idz);
 
                         for(i = -1; i <= 1; i = i + 2) {
                             for(j = -1; j <= 1; j = j + 2) {
@@ -184,8 +184,8 @@ class LBPAttributes(BaseAttributes):
                                         continue;
                                     }
 
-                                    index = ((ny * nx) * (idz + k)) + ((idy + j) * nx + (idx + i));
-                                    kernel_idx = (9 * (k + 1)) + ((j + 1) * 3 + (i + 1));
+                                    index = ((ny * nz) * (idx + i)) + ((idy + j) * nz + (idz + k));
+                                    kernel_idx = (9 * (i + 1)) + ((j + 1) * 3 + (k + 1));
 
                                     if (max < a[index]) {
                                         if (a[center] < a[index]) {
@@ -217,7 +217,7 @@ class LBPAttributes(BaseAttributes):
                         for(k = 0; k <= 2; k = k + 2) {
                             for(j = 0; j <= 2; j = j + 2) {
                                 for(i = 0; i <= 2; i = i + 2) {
-                                    if (kernel[(9 * k) + (j * 3 + i)] == 1) {
+                                    if (kernel[(9 * i) + (j * 3 + k)] == 1) {
                                         /* Implementing our own pow() function */
                                         n = 0;
                                         mult = 1;
@@ -237,33 +237,30 @@ class LBPAttributes(BaseAttributes):
                 }
             ''', 'local_binary_pattern_gpu')
 
-            dimz = block.shape[0]
+            dimx = block.shape[0]
             dimy = block.shape[1]
-            dimx = block.shape[2]
+            dimz = block.shape[2]
 
             out = cp.zeros((dimz * dimy * dimx), dtype=cp.float32)
             inp = cp.asarray(block, dtype=cp.float32)
 
             # Numpy is faster than Cupy for min and max
-            min_local = np.min(block.flatten())
-            max_local = np.max(block.flatten())
+            min_local = np.min(block.flatten()).get()
+            max_local = np.max(block.flatten()).get()
 
             block_size = 10
 
-            grid = (int(np.ceil(dimz/block_size)),
+            grid = (int(np.ceil(dimx/block_size)),
                     int(np.ceil(dimy/block_size)),
-                    int(np.ceil(dimx/block_size)),)
+                    int(np.ceil(dimz/block_size)),)
             block = (block_size, block_size, block_size,)
 
-            __lbp_gpu(grid, block, (inp, out, cp.float32(max_local.get()),
-                                    cp.float32(min_local.get()), cp.int32(dimx),
+            __lbp_gpu(grid, block, (inp, out, cp.float32(max_local),
+                                    cp.float32(min_local), cp.int32(dimx),
                                     cp.int32(dimy), cp.int32(dimz)))
 
-            unique_array = cp.unique(out)
-            for i, e in enumerate(unique_array):
-                out[out == e] = i
-
-            return(cp.asnumpy(out).reshape(dimz, dimy, dimx))
+            # XXX: we need to handle Numpy here due to Dask issue #7482
+            return (cp.asnumpy(out).reshape(dimx, dimy, dimz))
 
         if USE_CUPY:
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu, dtype=cp.float32)
