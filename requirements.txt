@@ -1,6 +1,7 @@
-scikit-image
-h5py
 dask
+glcm-cupy
+h5py
 numpy
-psutil
 pandas
+psutil
+scikit-image

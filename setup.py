@@ -11,7 +11,7 @@ long_description = \
 "to calculate them."
 
 setup(
-    name="d2geo",
+    name="seismic-attributes",
     version="1.0.0",
     author="Julio Cesar Faracco",
     author_email="jcfaracco@gmail.com",
@@ -19,7 +19,7 @@ setup(
     license="Apache v2.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/jcfaracco/d2geo",
+    url="https://github.com/jcfaracco/seismic-attributes",
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
