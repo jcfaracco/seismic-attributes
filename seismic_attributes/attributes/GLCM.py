@@ -14,8 +14,15 @@ import numpy as np
 from . import util
 from .Base import BaseAttributes
 
-from glcm_cupy import glcm
-from glcm_cupy import conf as glcm_conf
+try:
+    import cupy as cp
+
+    from glcm_cupy import glcm
+    from glcm_cupy import conf as glcm_conf
+
+    USE_CUPY = True
+except:
+    USE_CUPY = False
 
 from skimage.feature import greycomatrix, greycoprops
 

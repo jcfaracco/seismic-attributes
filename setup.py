@@ -11,7 +11,7 @@ long_description = \
 "to calculate them."
 
 setup(
-    name="seismic-attributes",
+    name="seismic_attributes",
     version="1.0.0",
     author="Julio Cesar Faracco",
     author_email="jcfaracco@gmail.com",
