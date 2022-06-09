@@ -106,7 +106,7 @@ class GLCMAttributes(BaseAttributes):
 
                         #Calculate contrast and replace center pixel
                         new_att[i, j] = greycoprops(glcm, glcm_type_block)
-                new_atts.append(new_att.astype(darray.type))
+                new_atts.append(new_att.astype(darray.dtype))
 
             return da.from_delayed(news_atts, dtype=darray.dtype,
                                    shape=darray.shape)
