@@ -24,7 +24,12 @@ try:
 except:
     USE_CUPY = False
 
-from skimage.feature import graycomatrix, graycoprops
+try:
+    from skimage.feature import graycomatrix, graycoprops
+except:
+    # XXX: Deprecated after release 0.19 of scikit-image
+    from skimage.feature import greycomatrix as graycomatrix
+    from skimage.feature import greycoprops as graycoprops
 
 
 class GLCMAttributes(BaseAttributes):
