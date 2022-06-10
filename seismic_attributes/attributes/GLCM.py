@@ -24,7 +24,7 @@ try:
 except:
     USE_CUPY = False
 
-from skimage.feature import greycomatrix, greycoprops
+from skimage.feature import graycomatrix, graycoprops
 
 
 class GLCMAttributes(BaseAttributes):
@@ -100,16 +100,15 @@ class GLCMAttributes(BaseAttributes):
 
                         #Calculate GLCM on a 7x7 window
                         glcm_window = gl[i - kh:i + kh + 1, j - kw:j + kw + 1].astype(int)
-                        glcm = greycomatrix(glcm_window, [distance_block],
+                        glcm = graycomatrix(glcm_window, [distance_block],
                                             [direction_block], levels=levels_block,
                                             symmetric=True, normed=True)
 
                         #Calculate contrast and replace center pixel
-                        new_att[i, j] = greycoprops(glcm, glcm_type_block)
-                new_atts.append(new_att.astype(darray.dtype))
+                        new_att[i, j] = graycoprops(glcm, glcm_type_block)
+                new_atts.append(new_att.astype(block.dtype))
 
-            return da.from_delayed(news_atts, dtype=darray.dtype,
-                                   shape=darray.shape)
+            return np.asarray(new_atts, dtype=block.dtype)
 
         def __glcm_block_cu(block, glcm_type_block, levels_block, direction_block, distance_block, glb_mi, glb_ma, block_info=None):
             d, h, w, = block.shape
@@ -123,8 +122,7 @@ class GLCMAttributes(BaseAttributes):
 
                 new_atts.append(g[..., glcm_type_block])
 
-            return da.from_delayed(news_atts, dtype=darray.dtype,
-                                   shape=darray.shape)
+            return cp.asarray(new_atts, dtype=block.dtype)
 
         if USE_CUPY and self._use_cuda:
             if glcm_type == "contrast":
