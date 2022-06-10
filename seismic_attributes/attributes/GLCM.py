@@ -17,7 +17,7 @@ from .Base import BaseAttributes
 try:
     import cupy as cp
 
-    from glcm_cupy import glcm
+    from glcm_cupy import glcm as glcm_gpu
     from glcm_cupy import conf as glcm_conf
 
     USE_CUPY = True
@@ -118,16 +118,12 @@ class GLCMAttributes(BaseAttributes):
         def __glcm_block_cu(block, glcm_type_block, levels_block, direction_block, distance_block, glb_mi, glb_ma, block_info=None):
             d, h, w, = block.shape
 
-            new_atts = list()
-            for k in range(d):
-                bins = cp.linspace(glb_mi, glb_ma + 1, 255)
-                gl = cp.digitize(block[k, :, :], bins) - 1
+            bins = np.linspace(glb_mi, glb_ma + 1, 255)
+            gl = np.digitize(block, bins) - 1
 
-                g = glcm(gl, bin_from=256, bin_to=levels_block)
+            g = glcm_gpu(gl, bin_from=256, bin_to=levels_block)
 
-                new_atts.append(g[..., glcm_type_block])
-
-            return cp.asarray(new_atts, dtype=block.dtype)
+            return cp.asarray(g[..., glcm_type_block])
 
         if USE_CUPY and self._use_cuda:
             if glcm_type == "contrast":
