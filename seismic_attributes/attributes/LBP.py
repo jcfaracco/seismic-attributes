@@ -37,18 +37,6 @@ class LBPAttributes(BaseAttributes):
     -------
     local_binary_pattern_2d
     """
-    def __init__(self, use_cuda=False):
-        """
-        Description
-        -----------
-        Constructor of LBP attribute class.
-
-        Keywork Arguments
-        ----------
-        use_cuda : Boolean, variable to set CUDA usage
-        """
-        super().__init__(use_cuda=use_cuda)
-
     def local_binary_pattern_2d(self, darray, preview=None):
         """
         Description
@@ -172,7 +160,7 @@ class LBPAttributes(BaseAttributes):
                     min = max_local + 1;
 
                     if ((idx > 0 && idy > 0 && idz > 0) &&
-                        (idx < nx) && (idy < ny) && (idz < nz)) {
+                        (idx < nx - 1) && (idy < ny - 1) && (idz < nz - 1)) {
                         center = ((ny * nz) * idx) + (idy * nz + idz);
 
                         for(i = -1; i <= 1; i = i + 2) {
@@ -214,9 +202,9 @@ class LBPAttributes(BaseAttributes):
 
                         mult = exp = sum = 0;
 
-                        for(k = 0; k <= 2; k = k + 2) {
+                        for(i = 0; i <= 2; i = i + 2) {
                             for(j = 0; j <= 2; j = j + 2) {
-                                for(i = 0; i <= 2; i = i + 2) {
+                                for(k = 0; k <= 2; k = k + 2) {
                                     if (kernel[(9 * i) + (j * 3 + k)] == 1) {
                                         /* Implementing our own pow() function */
                                         n = 0;
@@ -262,7 +250,7 @@ class LBPAttributes(BaseAttributes):
             # XXX: we need to handle Numpy here due to Dask issue #7482
             return (cp.asnumpy(out).reshape(dimx, dimy, dimz))
 
-        if USE_CUPY:
+        if USE_CUPY and self._use_cuda:
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu, dtype=cp.float32)
         else:
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d, dtype=darray.dtype)
