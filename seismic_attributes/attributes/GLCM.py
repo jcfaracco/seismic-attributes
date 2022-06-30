@@ -74,12 +74,10 @@ class GLCMAttributes(BaseAttributes):
         """
 
         kernel = (1, min(int(darray.shape[1]/4), 1000), int(darray.shape[2]))
-        hw = (0, 0, 0)
+        hw = None
 
         if not isinstance(darray, da.core.Array):
             darray = da.from_array(darray, chunks=kernel)
-
-        darray, chunks_init = self.create_array(darray, kernel, hw=hw, preview=preview)
 
         mi = da.min(darray)
         ma = da.max(darray)
@@ -116,14 +114,23 @@ class GLCMAttributes(BaseAttributes):
             return np.asarray(new_atts, dtype=block.dtype)
 
         def __glcm_block_cu(block, glcm_type_block, levels_block, direction_block, distance_block, glb_mi, glb_ma, block_info=None):
+            def pad_with(vector, pad_width, iaxis, kwargs):
+                pad_value = kwargs.get('padder', 10)
+                vector[:pad_width[0]] = pad_value
+                vector[-pad_width[1]:] = pad_value
+
             d, h, w, = block.shape
 
-            bins = np.linspace(glb_mi, glb_ma + 1, 255)
-            gl = np.digitize(block, bins) - 1
+            bins = cp.linspace(glb_mi, glb_ma + 1, 255)
+            gl = cp.digitize(block, bins) - 1
 
-            g = glcm_gpu(gl, bin_from=256, bin_to=levels_block)
+            new_atts = list()
+            for k in range(d):
+                image = gl[k, :, :, cp.newaxis]
+                g = glcm_gpu(image, bin_from=256, bin_to=levels_block)
+                new_atts.append(cp.pad(cp.asarray(g[..., glcm_type_block].squeeze(axis=2)), 3, pad_with, padder=0))
 
-            return cp.asarray(g[..., glcm_type_block])
+            return cp.asarray(new_atts, dtype=block.dtype)
 
         if USE_CUPY and self._use_cuda:
             if glcm_type == "contrast":
@@ -141,32 +148,30 @@ class GLCMAttributes(BaseAttributes):
             else:
                 raise Exception("GLCM type '%s' is not supported." % glcm_type)
 
-            glcm = darray.map_blocks(__glcm_block_cu, glcm_type, levels, direction, distance, mi, ma, dtype=darray.dtype)
+            result = darray.map_blocks(__glcm_block_cu, glcm_type, levels, direction, distance, mi, ma, dtype=darray.dtype)
         else:
-            glcm = darray.map_blocks(__glcm_block, glcm_type, levels, direction, distance, mi, ma, dtype=darray.dtype)
-
-        result = util.trim_dask_array(glcm, kernel)
+            result = darray.map_blocks(__glcm_block, glcm_type, levels, direction, distance, mi, ma, dtype=darray.dtype)
 
         return(result)
 
 
-    def glcm_contrast(self, darray, preview=None):
-        return self._glcm_generic(darray, "contrast")
+    def glcm_contrast(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "contrast", levels)
 
-    def glcm_dissimilarity(self, darray, preview=None):
-        return self._glcm_generic(darray, "dissimilarity")
+    def glcm_dissimilarity(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "dissimilarity", levels)
 
-    def glcm_asm(self, darray, preview=None):
-        return self._glcm_generic(darray, "asm")
+    def glcm_asm(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "asm", levels)
 
-    def glcm_mean(self, darray, preview=None):
-        return self._glcm_generic(darray, "mean")
+    def glcm_mean(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "mean", levels)
 
-    def glcm_correlation(self, darray, preview=None):
-        return self._glcm_generic(darray, "correlation")
+    def glcm_correlation(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "correlation", levels)
 
-    def glcm_homogeneity(self, darray, preview=None):
-        return self._glcm_generic(darray, "homogeneity")
+    def glcm_homogeneity(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "homogeneity", levels)
 
-    def glcm_var(self, darray, preview=None):
-        return self._glcm_generic(darray, "var")
+    def glcm_var(self, darray, levels=256, preview=None):
+        return self._glcm_generic(darray, "var", levels)
