@@ -12,6 +12,16 @@ import dask.array as da
 import numpy as np
 from scipy import ndimage as ndi
 
+try:
+    import cupy as cp
+    import cusignal
+
+    from cupyx.scipy import ndimage as cundi
+
+    USE_CUPY = True
+except Exception:
+    USE_CUPY = False
+
 from . import util
 from .Base import BaseAttributes
 
@@ -28,6 +38,17 @@ class NoiseReduction(BaseAttributes):
     median
     convolution
     """
+    def __init__(self, use_cuda=False):
+        """
+        Description
+        -----------
+        Constructor of noise reduction attribute class.
+
+        Keywork Arguments
+        -----------------
+        use_cuda : Boolean, variable to set CUDA usage
+        """
+        super().__init__(use_cuda=use_cuda)
 
     def gaussian(self, darray, sigmas=(1, 1, 1), preview=None):
         """
@@ -53,25 +74,28 @@ class NoiseReduction(BaseAttributes):
         """
         
         # Generate Dask Array as necessary and perform algorithm
-        kernel = tuple((np.array(sigmas) * 2.5).astype(int))        
-        darray, chunks_init = self.create_array(darray, kernel, preview=preview)        
-        result = darray.map_blocks(ndi.gaussian_filter, sigma=sigmas, dtype=darray.dtype)
-        result = util.trim_dask_array(result, kernel)        
+        kernel = tuple((np.array(sigmas) * 2.5).astype(int))
+        darray, chunks_init = self.create_array(darray, kernel, preview=preview)
+        if USE_CUPY and self._use_cuda:
+            result = darray.map_blocks(cundi.gaussian_filter, sigma=sigmas, dtype=darray.dtype)
+        else:
+            result = darray.map_blocks(ndi.gaussian_filter, sigma=sigmas, dtype=darray.dtype)
+        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
-        
+
         return(result)
-        
-        
+
+
     def median(self, darray, kernel=(3, 3, 3), preview=None):
         """
         Description
         -----------
         Perform median smoothing of input seismic data
-        
+
         Parameters
         ----------
         darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
-        
+
         Keywork Arguments
         -----------------  
         kernel : tuple (len 3), operator size in I, J, K
@@ -79,30 +103,33 @@ class NoiseReduction(BaseAttributes):
             Acceptable inputs are (None, 'inline', 'xline', 'z')
             Optimizes chunk size in different orientations to facilitate rapid
             screening of algorithm output
-        
+
         Returns
         -------
         result : Dask Array
         """
-        
+
         # Generate Dask Array as necessary and perform algorithm
-        darray, chunks_init = self.create_array(darray, kernel, preview=preview)        
-        result = darray.map_blocks(ndi.median_filter, size=kernel, dtype=darray.dtype)
-        result = util.trim_dask_array(result, kernel)            
+        darray, chunks_init = self.create_array(darray, kernel, preview=preview)
+        if USE_CUPY and self._use_cuda:
+            result = darray.map_blocks(cundi.median_filter, size=kernel, dtype=darray.dtype)
+        else:
+            result = darray.map_blocks(ndi.median_filter, size=kernel, dtype=darray.dtype)
+        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
-        
+
         return(result)
-        
+
     def convolution(self, darray, kernel=(3, 3, 3), preview=None):
         """
         Description
         -----------
         Perform convolution smoothing of input seismic data
-        
+
         Parameters
         ----------
         darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
-        
+
         Keywork Arguments
         -----------------  
         kernel : tuple (len 3), operator size in I, J, K
@@ -110,16 +137,19 @@ class NoiseReduction(BaseAttributes):
             Acceptable inputs are (None, 'inline', 'xline', 'z')
             Optimizes chunk size in different orientations to facilitate rapid
             screening of algorithm output
-        
+
         Returns
         -------
         result : Dask Array
         """
-        
+
         # Generate Dask Array as necessary and perform algorithm
-        darray, chunks_init = self.create_array(darray, kernel, preview=preview)            
-        result = darray.map_blocks(ndi.uniform_filter, size=kernel, dtype=darray.dtype)        
-        result = util.trim_dask_array(result, kernel)            
+        darray, chunks_init = self.create_array(darray, kernel, preview=preview)
+        if USE_CUPY and self._use_cuda:
+            result = darray.map_blocks(cundi.uniform_filter, size=kernel, dtype=darray.dtype)
+        else:
+            result = darray.map_blocks(ndi.uniform_filter, size=kernel, dtype=darray.dtype)
+        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
         
         return(result)
