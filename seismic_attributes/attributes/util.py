@@ -131,7 +131,7 @@ def compute_chunk_size(shape, byte_size, kernel=None, preview=None):
     
         
         
-def trim_dask_array(in_data, kernel, hw=None):
+def trim_dask_array(in_data, kernel, hw=None, boundary='reflect'):
     """
     Description
     -----------
@@ -152,7 +152,7 @@ def trim_dask_array(in_data, kernel, hw=None):
         hw = tuple(np.array(kernel) // 2)
     axes = {0 : hw[0], 1 : hw[1], 2: hw[2]}
 
-    return(da.overlap.trim_internal(in_data, axes=axes))
+    return(da.overlap.trim_internal(in_data, axes=axes, boundary=boundary))
     
     
 
