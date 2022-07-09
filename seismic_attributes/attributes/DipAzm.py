@@ -12,6 +12,15 @@ import numpy as np
 import dask.array as da
 from scipy import ndimage as ndi
 
+try:
+    import cupy as cp
+
+    from cupyx.scipy import ndimage as cundi
+
+    USE_CUPY = True
+except Exception:
+    USE_CUPY = False
+
 from . import util
 from .Base import BaseAttributes
 from .SignalProcess import SignalProcess as sp
@@ -76,11 +85,17 @@ class DipAzm(BaseAttributes):
         # Perform smoothing as specified
         if kernel != None:
             hw = tuple(np.array(kernel) // 2)
-            il_dip = il_dip.map_overlap(ndi.median_filter, depth=hw, boundary='reflect', 
-                                        dtype=darray.dtype, size=kernel)
-            xl_dip = xl_dip.map_overlap(ndi.median_filter, depth=hw, boundary='reflect', 
-                                        dtype=darray.dtype, size=kernel)               
-        
+            if USE_CUPY and self._use_cuda:
+                il_dip = il_dip.map_overlap(cundi.median_filter, depth=hw, boundary='reflect',
+                                            dtype=darray.dtype, size=kernel)
+                xl_dip = xl_dip.map_overlap(cundi.median_filter, depth=hw, boundary='reflect',
+                                            dtype=darray.dtype, size=kernel)
+            else:
+                il_dip = il_dip.map_overlap(ndi.median_filter, depth=hw, boundary='reflect',
+                                            dtype=darray.dtype, size=kernel)
+                xl_dip = xl_dip.map_overlap(ndi.median_filter, depth=hw, boundary='reflect',
+                                            dtype=darray.dtype, size=kernel)
+
         return(il_dip, xl_dip)
         
 
@@ -120,18 +135,32 @@ class DipAzm(BaseAttributes):
         
         # Compute Inner Product of Gradients
         hw = tuple(np.array(kernel) // 2)
-        gi2 = (gi * gi).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect', 
-                                    dtype=darray.dtype, size=kernel)
-        gj2 = (gj * gj).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect', 
-                                    dtype=darray.dtype, size=kernel)
-        gk2 = (gk * gk).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect', 
-                                    dtype=darray.dtype, size=kernel)
-        gigj = (gi * gj).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect', 
-                                     dtype=darray.dtype, size=kernel)
-        gigk = (gi * gk).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect', 
-                                     dtype=darray.dtype, size=kernel)
-        gjgk = (gj * gk).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect', 
-                                     dtype=darray.dtype, size=kernel)
+        if USE_CUPY and self._use_cuda:
+            gi2 = (gi * gi).map_overlap(cundi.uniform_filter, depth=hw, boundary='reflect',
+                                        dtype=darray.dtype, size=kernel)
+            gj2 = (gj * gj).map_overlap(cundi.uniform_filter, depth=hw, boundary='reflect',
+                                        dtype=darray.dtype, size=kernel)
+            gk2 = (gk * gk).map_overlap(cundi.uniform_filter, depth=hw, boundary='reflect',
+                                        dtype=darray.dtype, size=kernel)
+            gigj = (gi * gj).map_overlap(cundi.uniform_filter, depth=hw, boundary='reflect',
+                                         dtype=darray.dtype, size=kernel)
+            gigk = (gi * gk).map_overlap(cundi.uniform_filter, depth=hw, boundary='reflect',
+                                         dtype=darray.dtype, size=kernel)
+            gjgk = (gj * gk).map_overlap(cundi.uniform_filter, depth=hw, boundary='reflect',
+                                         dtype=darray.dtype, size=kernel)
+        else:
+            gi2 = (gi * gi).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect',
+                                        dtype=darray.dtype, size=kernel)
+            gj2 = (gj * gj).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect',
+                                        dtype=darray.dtype, size=kernel)
+            gk2 = (gk * gk).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect',
+                                        dtype=darray.dtype, size=kernel)
+            gigj = (gi * gj).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect',
+                                         dtype=darray.dtype, size=kernel)
+            gigk = (gi * gk).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect',
+                                         dtype=darray.dtype, size=kernel)
+            gjgk = (gj * gk).map_overlap(ndi.uniform_filter, depth=hw, boundary='reflect',
+                                         dtype=darray.dtype, size=kernel)
         
         return(gi2, gj2, gk2, gigj, gigk, gjgk)
 
@@ -163,20 +192,34 @@ class DipAzm(BaseAttributes):
         
         # Compute dips from Eigenvectors of GST
         def operation(gi2, gj2, gk2, gigj, gigk, gjgk, axis):
-            np.seterr(all='ignore')
-            
             shape = gi2.shape
+
+            if USE_CUPY and self._use_cuda:
+                cp.seterr(all='ignore')
+
+                gst = cp.array([[gi2, gigj, gigk],
+                               [gigj, gj2, gjgk],
+                               [gigk, gjgk, gk2]])
+
+                gst = cp.moveaxis(gst, [0,1], [-2,-1])
+                gst = gst.reshape((-1, 3, 3))
+
+                evals, evecs = cp.linalg.eigh(gst)
+                ndx = evals.argsort()
+                evecs = evecs[cp.arange(0,gst.shape[0],1),:,ndx[:,2]]
+            else:
+                np.seterr(all='ignore')
             
-            gst = np.array([[gi2, gigj, gigk],
-                          [gigj, gj2, gjgk],
-                          [gigk, gjgk, gk2]])
+                gst = np.array([[gi2, gigj, gigk],
+                               [gigj, gj2, gjgk],
+                               [gigk, gjgk, gk2]])
             
-            gst = np.moveaxis(gst, [0,1], [-2,-1])
-            gst = gst.reshape((-1, 3, 3))
+                gst = np.moveaxis(gst, [0,1], [-2,-1])
+                gst = gst.reshape((-1, 3, 3))
             
-            evals, evecs = np.linalg.eigh(gst)
-            ndx = evals.argsort()
-            evecs = evecs[np.arange(0,gst.shape[0],1),:,ndx[:,2]]
+                evals, evecs = np.linalg.eigh(gst)
+                ndx = evals.argsort()
+                evecs = evecs[np.arange(0,gst.shape[0],1),:,ndx[:,2]]
             
             out = -evecs[:, axis] / evecs[:, 2]
             out = out.reshape(shape)
@@ -225,33 +268,59 @@ class DipAzm(BaseAttributes):
         
         # Function to compute 3D dip from GST
         def operation(gi2, gj2, gk2, gigj, gigk, gjgk, axis):
-            np.seterr(all='ignore')
-            
             shape = gi2.shape
+
+            if USE_CUPY and self._use_cuda:
+                cp.seterr(all='ignore')
+
+                gst = cp.array([[gi2, gigj, gigk],
+                               [gigj, gj2, gjgk],
+                               [gigk, gjgk, gk2]])
+
+                gst = cp.moveaxis(gst, [0,1], [-2,-1])
+                gst = gst.reshape((-1, 3, 3))
+
+                evals, evecs = cp.linalg.eigh(gst)
+                ndx = evals.argsort()
+                evecs = evecs[cp.arange(0,gst.shape[0],1),:,ndx[:,2]]
+
+                norm_factor = cp.linalg.norm(evecs, axis = -1)
+            else:
+                np.seterr(all='ignore')
             
-            gst = np.array([[gi2, gigj, gigk],
-                          [gigj, gj2, gjgk],
-                          [gigk, gjgk, gk2]])
+                gst = np.array([[gi2, gigj, gigk],
+                               [gigj, gj2, gjgk],
+                               [gigk, gjgk, gk2]])
             
-            gst = np.moveaxis(gst, [0,1], [-2,-1])
-            gst = gst.reshape((-1, 3, 3))
+                gst = np.moveaxis(gst, [0,1], [-2,-1])
+                gst = gst.reshape((-1, 3, 3))
             
-            evals, evecs = np.linalg.eigh(gst)
-            ndx = evals.argsort()
-            evecs = evecs[np.arange(0,gst.shape[0],1),:,ndx[:,2]]
+                evals, evecs = np.linalg.eigh(gst)
+                ndx = evals.argsort()
+                evecs = evecs[np.arange(0,gst.shape[0],1),:,ndx[:,2]]
             
-            norm_factor = np.linalg.norm(evecs, axis = -1)
+                norm_factor = np.linalg.norm(evecs, axis = -1)
+
             evecs[:, 0] /= norm_factor
             evecs[:, 1] /= norm_factor
             evecs[:, 2] /= norm_factor
+
+            if USE_CUPY and self._use_cuda:
+                evecs[evecs[:, 2] < 0] *= cp.sign(evecs[evecs[:, 2] < 0])
+
+                dip = cp.dot(evecs, cp.array([0,0,1]))
+                dip = cp.arccos(dip)
+                dip = dip.reshape(shape)
+
+                dip = cp.rad2deg(dip)
+            else:
+                evecs[evecs[:, 2] < 0] *= np.sign(evecs[evecs[:, 2] < 0])
             
-            evecs[evecs[:, 2] < 0] *= np.sign(evecs[evecs[:, 2] < 0])
+                dip = np.dot(evecs, np.array([0,0,1]))
+                dip = np.arccos(dip)
+                dip = dip.reshape(shape)
             
-            dip = np.dot(evecs, np.array([0,0,1]))
-            dip = np.arccos(dip)
-            dip = dip.reshape(shape)
-            
-            dip = np.rad2deg(dip)# - 90
+                dip = np.rad2deg(dip)# - 90
             
             return(dip)
         
@@ -291,32 +360,57 @@ class DipAzm(BaseAttributes):
         
         # Function to compute 3D azimuth from GST
         def operation(gi2, gj2, gk2, gigj, gigk, gjgk, axis):
-            np.seterr(all='ignore')
-            
             shape = gi2.shape
+
+            if USE_CUPY and self._use_cuda:
+                cp.seterr(all='ignore')
+
+                gst = cp.array([[gi2, gigj, gigk],
+                               [gigj, gj2, gjgk],
+                               [gigk, gjgk, gk2]])
+
+                gst = cp.moveaxis(gst, [0,1], [-2,-1])
+                gst = gst.reshape((-1, 3, 3))
+
+                evals, evecs = cp.linalg.eigh(gst)
+                ndx = evals.argsort()
+                evecs = evecs[cp.arange(0,gst.shape[0],1),:,ndx[:,2]]
+
+                norm_factor = cp.linalg.norm(evecs, axis = -1)
+            else:
+                np.seterr(all='ignore')
             
-            gst = np.array([[gi2, gigj, gigk],
-                          [gigj, gj2, gjgk],
-                          [gigk, gjgk, gk2]])
+                gst = np.array([[gi2, gigj, gigk],
+                               [gigj, gj2, gjgk],
+                               [gigk, gjgk, gk2]])
             
-            gst = np.moveaxis(gst, [0,1], [-2,-1])
-            gst = gst.reshape((-1, 3, 3))
+                gst = np.moveaxis(gst, [0,1], [-2,-1])
+                gst = gst.reshape((-1, 3, 3))
             
-            evals, evecs = np.linalg.eigh(gst)
-            ndx = evals.argsort()
-            evecs = evecs[np.arange(0,gst.shape[0],1),:,ndx[:,2]]
+                evals, evecs = np.linalg.eigh(gst)
+                ndx = evals.argsort()
+                evecs = evecs[np.arange(0,gst.shape[0],1),:,ndx[:,2]]
             
-            norm_factor = np.linalg.norm(evecs, axis = -1)
+                norm_factor = np.linalg.norm(evecs, axis = -1)
+
             evecs[:, 0] /= norm_factor
             evecs[:, 1] /= norm_factor
             evecs[:, 2] /= norm_factor
             
-            evecs[evecs[:, 2] < 0] *= np.sign(evecs[evecs[:, 2] < 0])
+            if USE_CUPY and self._use_cuda:
+                evecs[evecs[:, 2] < 0] *= cp.sign(evecs[evecs[:, 2] < 0])
+
+                azm = cp.arctan2(evecs[:, 0], evecs[:, 1])
+                azm = azm.reshape(shape)
+                azm = cp.rad2deg(azm)
+                azm[azm < 0] += 360
+            else:
+                evecs[evecs[:, 2] < 0] *= np.sign(evecs[evecs[:, 2] < 0])
             
-            azm = np.arctan2(evecs[:, 0], evecs[:, 1])
-            azm = azm.reshape(shape)
-            azm = np.rad2deg(azm)
-            azm[azm < 0] += 360
+                azm = np.arctan2(evecs[:, 0], evecs[:, 1])
+                azm = azm.reshape(shape)
+                azm = np.rad2deg(azm)
+                azm[azm < 0] += 360
             
             return(azm)
         
