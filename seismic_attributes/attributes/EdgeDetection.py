@@ -383,8 +383,10 @@ class EdgeDetection(BaseAttributes):
                                                       K : 'Gaussian Curvature',
                                                       Kmax : 'Max Curvature',
                                                       Kmin : 'Min Curvature',
-                                                      KMPos : Most Positive Curvature,
-                                                      KMNeg : Most Negative Curvature}
+                                                      KMPos : Most Positive
+                                                              Curvature,
+                                                      KMNeg : Most Negative
+                                                              Curvature}
         """
 
         np.seterr(all='ignore')
@@ -463,7 +465,9 @@ class EdgeDetection(BaseAttributes):
         F = -(u * w) / (da.sqrt(u2pv2) * da.sqrt(v2pw2))
         G = da.ones_like(u, chunks=u.chunks, dtype=u.dtype)
         D = -(-uv * vx+u2 * vy + v2 * ux - uv * uy) / (u2pv2 * s)
-        Di = -(vw * (uy + vx) - 2 * u * w * vy - v2 * (uz + wx) + uv * (vz + wy)) / (2 * da.sqrt(u2pv2) * da.sqrt(v2pw2) * s)
+        Di = -(vw * (uy + vx) - 2 * u * w * vy - v2 *
+               (uz + wx) + uv * (vz + wy)) / (2 * da.sqrt(u2pv2) *
+                                              da.sqrt(v2pw2) * s)
         Dii = -(-vw * wy + v2 * wz + w2 * vy - vw * vz) / (v2pw2 * s)
         H = (E * Dii - 2 * F * Di + G * D) / (2 * (E * G - F * F))
         K = (D * Dii - Di * Di) / (E * G - F * F)

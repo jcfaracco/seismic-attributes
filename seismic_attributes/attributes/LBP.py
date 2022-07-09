@@ -15,24 +15,23 @@ try:
     import cupy as cp
 
     USE_CUPY = True
-except:
+except Exception:
     USE_CUPY = False
 
 from . import util
 from .Base import BaseAttributes
 
 from skimage.feature import local_binary_pattern
-from scipy.interpolate import RegularGridInterpolator as RGI
 
 
 class LBPAttributes(BaseAttributes):
     """
     Description
     -----------
-    Class object containing methods for computing local binary pattern attributes 
-    from 3D seismic data. This class does belongs to Base object it has his own
-    create_array() method.
-    
+    Class object containing methods for computing local binary pattern
+    attributes from 3D seismic data. This class does belongs to Base
+    object it has his own create_array() method.
+
     Methods
     -------
     local_binary_pattern_2d
@@ -45,7 +44,8 @@ class LBPAttributes(BaseAttributes):
 
         Parameters
         ----------
-        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
+        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask
+            Arrays
 
         Keywork Arguments
         -----------------
@@ -68,18 +68,21 @@ class LBPAttributes(BaseAttributes):
         if not isinstance(darray, da.core.Array):
             darray = da.from_array(darray, chunks=kernel)
 
-        darray, chunks_init = self.create_array(darray, kernel, hw=hw, boundary='periodic', preview=preview)
+        darray, chunks_init = self.create_array(darray, kernel, hw=hw,
+                                                boundary='periodic',
+                                                preview=preview)
 
         def __local_binary_pattern(block, block_info=None):
             sub_cube = list()
             for i in range(0, block.shape[0]):
-                sub_cube.append(local_binary_pattern(block[i, :, :], neighboors, radius, method))
+                sub_cube.append(local_binary_pattern(block[i, :, :],
+                                                     neighboors,
+                                                     radius, method))
             return da.from_array(np.array(sub_cube))
         lbp = darray.map_blocks(__local_binary_pattern, dtype=darray.dtype)
         result = util.trim_dask_array(lbp, kernel, hw)
 
         return(result)
-
 
     def local_binary_pattern_diag_3d(self, darray, preview=None):
 
@@ -88,12 +91,15 @@ class LBPAttributes(BaseAttributes):
         if USE_CUPY and self._use_cuda:
             kernel = (darray.shape[0], darray.shape[1], darray.shape[2])
         else:
-            kernel = (min(int((darray.shape[0] + 4)/4), 1000), darray.shape[1], darray.shape[2])
+            kernel = (min(int((darray.shape[0] + 4) / 4), 1000),
+                      darray.shape[1], darray.shape[2])
 
         if not isinstance(darray, da.core.Array):
             darray = da.from_array(darray, chunks=kernel)
 
-        darray, chunks_init = self.create_array(darray, kernel, hw=hw, boundary='periodic', preview=preview)
+        darray, chunks_init = self.create_array(darray, kernel, hw=hw,
+                                                boundary='periodic',
+                                                preview=preview)
 
         def __local_binary_pattern_unique(block, unique_array):
             for i in range(len(unique_array)):
@@ -108,15 +114,20 @@ class LBPAttributes(BaseAttributes):
             for ih in range(0, block.shape[0] - neighboor + s0):
                 for iw in range(0, block.shape[1] - neighboor + s0):
                     for iz in range(0, block.shape[2] - neighboor + s0):
-                        img = block[ih:ih+neighboor,iw:iw+neighboor,iz:iz+neighboor]
+                        img = block[ih:ih + neighboor,
+                                    iw:iw + neighboor,
+                                    iz:iz + neighboor]
                         center = img[1, 1, 1]
                         img_aux_vector = img.flatten()
 
                         # Delete centroids
-                        del_vec = [1, 3, 4, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 21, 22, 23, 25]
+                        del_vec = [1, 3, 4, 5, 7, 9, 10, 11, 12, 13,
+                                   14, 15, 16, 17, 19, 21, 22, 23, 25]
+
                         img_aux_vector = np.delete(img_aux_vector, del_vec)
 
-                        weights =  2 ** np.arange(len(img_aux_vector), dtype=np.uint64)
+                        weights = 2 ** np.arange(len(img_aux_vector),
+                                                 dtype=np.uint64)
 
                         mask_vec = np.zeros(len(img_aux_vector), dtype=np.int8)
 
@@ -131,7 +142,7 @@ class LBPAttributes(BaseAttributes):
 
                         num = np.sum(weights * mask_vec)
 
-                        img_lbp[ih+1,iw+1,iz+1] = num
+                        img_lbp[ih + 1, iw + 1, iz + 1] = num
             return(img_lbp)
 
         def __local_binary_pattern_diag_3d_cu(block):
@@ -167,13 +178,19 @@ class LBPAttributes(BaseAttributes):
                             for(j = -1; j <= 1; j = j + 2) {
                                 for(k = -1; k <= 1; k = k + 2) {
                                     /* Avoid illegal memory access */
-                                    if ((idx + i >= nx || idy + j >= ny || idz + k >= nz) ||
-                                        (idx + i < 0 || idy + j < 0 || idz + k < 0)) {
+                                    if ((idx + i >= nx ||
+                                         idy + j >= ny ||
+                                         idz + k >= nz) ||
+                                        (idx + i < 0 ||
+                                         idy + j < 0 ||
+                                         idz + k < 0)) {
                                         continue;
                                     }
 
-                                    index = ((ny * nz) * (idx + i)) + ((idy + j) * nz + (idz + k));
-                                    kernel_idx = (9 * (i + 1)) + ((j + 1) * 3 + (k + 1));
+                                    index = (((ny * nz) * (idx + i)) +
+                                             ((idy + j) * nz + (idz + k)));
+                                    kernel_idx = ((9 * (i + 1)) + ((j + 1) *
+                                                   3 + (k + 1)));
 
                                     if (max < a[index]) {
                                         if (a[center] < a[index]) {
@@ -206,7 +223,7 @@ class LBPAttributes(BaseAttributes):
                             for(j = 0; j <= 2; j = j + 2) {
                                 for(k = 0; k <= 2; k = k + 2) {
                                     if (kernel[(9 * i) + (j * 3 + k)] == 1) {
-                                        /* Implementing our own pow() function */
+                                        // Implementing our own pow() function
                                         n = 0;
                                         mult = 1;
                                         while(n < exp) {
@@ -251,13 +268,16 @@ class LBPAttributes(BaseAttributes):
             return (cp.asnumpy(out).reshape(dimx, dimy, dimz))
 
         if USE_CUPY and self._use_cuda:
-            lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu, dtype=cp.float32)
+            lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu,
+                                            dtype=cp.float32)
         else:
-            lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d, dtype=darray.dtype)
+            lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d,
+                                            dtype=darray.dtype)
         result = util.trim_dask_array(lbp_diag_3d, kernel, hw)
 
         unique = da.unique(result)
 
-        result = result.map_blocks(__local_binary_pattern_unique, unique, dtype=result.dtype)
+        result = result.map_blocks(__local_binary_pattern_unique, unique,
+                                   dtype=result.dtype)
 
         return(result)

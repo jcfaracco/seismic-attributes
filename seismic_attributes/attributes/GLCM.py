@@ -11,7 +11,6 @@ Grey-Level Co-occurrence Matrix for Seismic Data
 import dask.array as da
 import numpy as np
 
-from . import util
 from .Base import BaseAttributes
 
 try:
@@ -21,12 +20,12 @@ try:
     from glcm_cupy import conf as glcm_conf
 
     USE_CUPY = True
-except:
+except Exception:
     USE_CUPY = False
 
 try:
     from skimage.feature import graycomatrix, graycoprops
-except:
+except Exception:
     # XXX: Deprecated after release 0.19 of scikit-image
     from skimage.feature import greycomatrix as graycomatrix
     from skimage.feature import greycoprops as graycoprops
@@ -51,7 +50,8 @@ class GLCMAttributes(BaseAttributes):
     glcm_mean
     glcm_var
     """
-    def _glcm_generic(self, darray, glcm_type, levels=256, direction=0, distance=1, preview=None):
+    def _glcm_generic(self, darray, glcm_type, levels=256, direction=0,
+                      distance=1, preview=None):
         """
         Description
         -----------
@@ -59,7 +59,8 @@ class GLCMAttributes(BaseAttributes):
 
         Parameters
         ----------
-        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask Arrays
+        darray : Array-like, acceptable inputs include Numpy, HDF5, or Dask
+            Arrays
 
         Keywork Arguments
         -----------------
@@ -74,7 +75,6 @@ class GLCMAttributes(BaseAttributes):
         """
 
         kernel = (1, min(int(darray.shape[1]/4), 1000), int(darray.shape[2]))
-        hw = None
 
         if not isinstance(darray, da.core.Array):
             darray = da.from_array(darray, chunks=kernel)
@@ -82,7 +82,8 @@ class GLCMAttributes(BaseAttributes):
         mi = da.min(darray)
         ma = da.max(darray)
 
-        def __glcm_block(block, glcm_type_block, levels_block, direction_block, distance_block, glb_mi, glb_ma, block_info=None):
+        def __glcm_block(block, glcm_type_block, levels_block, direction_block,
+                         distance_block, glb_mi, glb_ma, block_info=None):
             d, h, w, = block.shape
             kh = kw = distance_block
 
@@ -95,25 +96,29 @@ class GLCMAttributes(BaseAttributes):
 
                 for i in range(h):
                     for j in range(w):
-                        #windows needs to fit completely in image
+                        # Windows needs to fit completely in image
                         if i < kh or j < kw:
                             continue
                         if i > (h - kh - 1) or j > (w - kw - 1):
                             continue
 
-                        #Calculate GLCM on a 7x7 window
-                        glcm_window = gl[i - kh:i + kh + 1, j - kw:j + kw + 1].astype(int)
+                        # Calculate GLCM on a 7x7 window
+                        glcm_window = gl[i - kh:i + kh + 1,
+                                         j - kw:j + kw + 1].astype(int)
                         glcm = graycomatrix(glcm_window, [distance_block],
-                                            [direction_block], levels=levels_block,
+                                            [direction_block],
+                                            levels=levels_block,
                                             symmetric=True, normed=True)
 
-                        #Calculate contrast and replace center pixel
+                        # Calculate contrast and replace center pixel
                         new_att[i, j] = graycoprops(glcm, glcm_type_block)
                 new_atts.append(new_att.astype(block.dtype))
 
             return np.asarray(new_atts, dtype=block.dtype)
 
-        def __glcm_block_cu(block, glcm_type_block, levels_block, direction_block, distance_block, glb_mi, glb_ma, block_info=None):
+        def __glcm_block_cu(block, glcm_type_block, levels_block,
+                            direction_block, distance_block, glb_mi, glb_ma,
+                            block_info=None):
             def pad_with(vector, pad_width, iaxis, kwargs):
                 pad_value = kwargs.get('padder', 10)
                 vector[:pad_width[0]] = pad_value
@@ -128,7 +133,9 @@ class GLCMAttributes(BaseAttributes):
             for k in range(d):
                 image = gl[k, :, :, cp.newaxis]
                 g = glcm_gpu(image, bin_from=256, bin_to=levels_block)
-                new_atts.append(cp.pad(cp.asarray(g[..., glcm_type_block].squeeze(axis=2)), 3, pad_with, padder=0))
+                new_atts.append(cp.pad(cp.asarray(g[...,
+                                       glcm_type_block].squeeze(axis=2)), 3,
+                                       pad_with, padder=0))
 
             return cp.asarray(new_atts, dtype=block.dtype)
 
@@ -148,12 +155,15 @@ class GLCMAttributes(BaseAttributes):
             else:
                 raise Exception("GLCM type '%s' is not supported." % glcm_type)
 
-            result = darray.map_blocks(__glcm_block_cu, glcm_type, levels, direction, distance, mi, ma, dtype=darray.dtype)
+            result = darray.map_blocks(__glcm_block_cu, glcm_type, levels,
+                                       direction, distance, mi, ma,
+                                       dtype=darray.dtype)
         else:
-            result = darray.map_blocks(__glcm_block, glcm_type, levels, direction, distance, mi, ma, dtype=darray.dtype)
+            result = darray.map_blocks(__glcm_block, glcm_type, levels,
+                                       direction, distance, mi, ma,
+                                       dtype=darray.dtype)
 
         return(result)
-
 
     def glcm_contrast(self, darray, levels=256, preview=None):
         return self._glcm_generic(darray, "contrast", levels)

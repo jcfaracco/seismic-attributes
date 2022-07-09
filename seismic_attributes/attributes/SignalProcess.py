@@ -88,23 +88,28 @@ class SignalProcess(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
         if USE_CUPY and self._use_cuda:
-            result0 = darray.map_blocks(cundi.correlate1d, weights=cp.array([-0.5, 0.0, 0.5]),
+            result0 = darray.map_blocks(cundi.correlate1d,
+                                        weights=cp.array([-0.5, 0.0, 0.5]),
                                         axis=axis, dtype=darray.dtype)
             result1 = result0.map_blocks(cundi.correlate1d,
-                                         weights=cp.array([0.178947, 0.642105, 0.178947]),
+                                         weights=cp.array([0.178947, 0.642105,
+                                                           0.178947]),
                                          axis=axes[0], dtype=darray.dtype)
             result2 = result1.map_blocks(cundi.correlate1d,
-                                         weights=cp.array([0.178947, 0.642105, 0.178947]),
+                                         weights=cp.array([0.178947, 0.642105,
+                                                           0.178947]),
                                          axis=axes[1], dtype=darray.dtype)
         else:
             result0 = darray.map_blocks(ndi.correlate1d,
                                         weights=[-0.5, 0.0, 0.5],
                                         axis=axis, dtype=darray.dtype)
             result1 = result0.map_blocks(ndi.correlate1d,
-                                         weights=[0.178947, 0.642105, 0.178947],
+                                         weights=[0.178947, 0.642105,
+                                                  0.178947],
                                          axis=axes[0], dtype=darray.dtype)
             result2 = result1.map_blocks(ndi.correlate1d,
-                                         weights=[0.178947, 0.642105, 0.178947],
+                                         weights=[0.178947, 0.642105,
+                                                  0.178947],
                                          axis=axes[1], dtype=darray.dtype)
         result = util.trim_dask_array(result2, kernel)
 
@@ -140,23 +145,32 @@ class SignalProcess(BaseAttributes):
                                                 preview=preview)
         if USE_CUPY and self._use_cuda:
             result0 = darray.map_blocks(cundi.correlate1d,
-                                        weights=cp.array([0.232905, 0.002668, -0.471147, 0.002668, 0.232905]),
+                                        weights=cp.array([0.232905, 0.002668,
+                                                          -0.471147, 0.002668,
+                                                          0.232905]),
                                         axis=axis, dtype=darray.dtype)
             result1 = result0.map_blocks(cundi.correlate1d,
-                                         weights=cp.array([0.030320, 0.249724, 0.439911, 0.249724, 0.030320]),
+                                         weights=cp.array([0.030320, 0.249724,
+                                                           0.439911, 0.249724,
+                                                           0.030320]),
                                          axis=axes[0], dtype=darray.dtype)
             result2 = result1.map_blocks(cundi.correlate1d,
-                                         weights=cp.array([0.030320, 0.249724, 0.439911, 0.249724, 0.030320]),
+                                         weights=cp.array([0.030320, 0.249724,
+                                                           0.439911, 0.249724,
+                                                           0.030320]),
                                          axis=axes[1], dtype=darray.dtype)
         else:
             result0 = darray.map_blocks(ndi.correlate1d,
-                                        weights=[0.232905, 0.002668, -0.471147, 0.002668, 0.232905],
+                                        weights=[0.232905, 0.002668, -0.471147,
+                                                 0.002668, 0.232905],
                                         axis=axis, dtype=darray.dtype)
             result1 = result0.map_blocks(ndi.correlate1d,
-                                         weights=[0.030320, 0.249724, 0.439911, 0.249724, 0.030320],
+                                         weights=[0.030320, 0.249724, 0.439911,
+                                                  0.249724, 0.030320],
                                          axis=axes[0], dtype=darray.dtype)
             result2 = result1.map_blocks(ndi.correlate1d,
-                                         weights=[0.030320, 0.249724, 0.439911, 0.249724, 0.030320],
+                                         weights=[0.030320, 0.249724, 0.439911,
+                                                  0.249724, 0.030320],
                                          axis=axes[1], dtype=darray.dtype)
         result = util.trim_dask_array(result2, kernel)
 
@@ -199,11 +213,13 @@ class SignalProcess(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         if USE_CUPY and self._use_cuda:
-            hist, bins = da.histogram(darray, bins=cp.linspace(da_min, da_max,
-                                                               256, dtype=darray.dtype))
+            hist, bins = da.histogram(darray,
+                                      bins=cp.linspace(da_min, da_max, 256,
+                                                       dtype=darray.dtype))
         else:
-            hist, bins = da.histogram(darray, bins=np.linspace(da_min, da_max,
-                                                               256, dtype=darray.dtype))
+            hist, bins = da.histogram(darray,
+                                      bins=np.linspace(da_min, da_max, 256,
+                                                       dtype=darray.dtype))
         cdf = hist.cumsum(axis=-1)
         cdf = cdf / cdf[-1]
         bins = (bins[:-1] + bins[1:]) / 2
@@ -473,7 +489,9 @@ class SignalProcess(BaseAttributes):
         else:
             analytical_trace = darray.map_blocks(signal.hilbert,
                                                  dtype=darray.dtype)
-        result = analytical_trace.real * da.cos(phi) - analytical_trace.imag * da.sin(phi)
+        result = (analytical_trace.real * da.cos(phi) -
+                  analytical_trace.imag * da.sin(phi))
+
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
