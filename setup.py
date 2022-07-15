@@ -8,18 +8,18 @@ long_description = \
 "calculation. This specific one enhances and " \
 "includes new attributes, other facilities and " \
 "some optimizations to help geologists to " \
-"to calculate them."
+"to calculate them using Dask."
 
 setup(
-    name="seismic_attributes",
+    name="dasf_attributes",
     version="1.0.0",
     author="Julio Cesar Faracco",
     author_email="jcfaracco@gmail.com",
-    description="A collections of tools to calculate seismic attributes",
+    description="A collections of tools to calculate seismic attributes using Dask",
     license="Apache v2.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/jcfaracco/seismic-attributes",
+    url="https://github.com/lmcad-unicamp/dasf-attributes",
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
