@@ -35,6 +35,7 @@ class LBPAttributes(BaseAttributes):
     Methods
     -------
     local_binary_pattern_2d
+    local_binary_pattern_diag_3d
     """
     def local_binary_pattern_2d(self, darray, preview=None):
         """
