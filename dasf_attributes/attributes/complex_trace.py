@@ -14,9 +14,8 @@ import numpy as np
 try:
     import cupy as cp
     import cusignal
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 from . import util
 from .Base import BaseAttributes
@@ -86,7 +85,7 @@ class ComplexAttributes(BaseAttributes):
         kernel = (1, 1, 25)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
@@ -122,7 +121,7 @@ class ComplexAttributes(BaseAttributes):
         kernel = (1, 1, 25)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
@@ -159,7 +158,7 @@ class ComplexAttributes(BaseAttributes):
         kernel = (1, 1, 25)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
@@ -288,7 +287,7 @@ class ComplexAttributes(BaseAttributes):
         fs = 1000 / sample_rate
         phase = self.instantaneous_phase(darray)
         phase = da.deg2rad(phase)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             phase = phase.map_blocks(cp.unwrap, dtype=darray.dtype)
         else:
             phase = phase.map_blocks(np.unwrap, dtype=darray.dtype)

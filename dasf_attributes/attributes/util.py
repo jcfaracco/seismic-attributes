@@ -25,6 +25,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def is_cupy_enabled(use_cuda=True):
+    return USE_CUPY and use_cuda
+
+
 def compute_chunk_size(shape, byte_size, kernel=None, preview=None):
     """
     Description
@@ -277,7 +281,7 @@ def extract_patches(in_data, kernel, use_cuda=False):
     """
 
     strides = in_data.strides + in_data.strides
-    if USE_CUPY and use_cuda:
+    if is_cupy_enabled(use_cuda):
         shape = (cp.array(in_data.shape) - cp.array(kernel)) + 1
         shape = tuple(list(shape) + list(kernel))
 

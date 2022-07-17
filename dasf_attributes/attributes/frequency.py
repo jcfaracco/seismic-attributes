@@ -14,11 +14,10 @@ from scipy import signal
 try:
     import cupy as cp
     import cusignal
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
+from . import util
 from .Base import BaseAttributes
 
 
@@ -75,7 +74,7 @@ class Frequency(BaseAttributes):
 
         # Filtering Function
         def filt(chunk, B, A):
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cusignal.filtfilt(B, A, x=chunk)
             else:
                 out = signal.filtfilt(B, A, x=chunk)
@@ -119,7 +118,7 @@ class Frequency(BaseAttributes):
 
         # Filtering Function
         def filt(chunk, B, A):
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cusignal.filtfilt(B, A, x=chunk)
             else:
                 out = signal.filtfilt(B, A, x=chunk)
@@ -165,7 +164,7 @@ class Frequency(BaseAttributes):
 
         # Filtering Function
         def filt(chunk, B, A):
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cusignal.filtfilt(B, A, x=chunk)
             else:
                 out = signal.filtfilt(B, A, x=chunk)
@@ -211,21 +210,33 @@ class Frequency(BaseAttributes):
         # Generate wavelet of specified frequency
         def wavelet(freq, sample_rate):
 
-            sr = sample_rate / 1000
-            t = np.arange(-0.512 / 2, 0.512 / 2, sr)
-            out = ((1 - (2 * (np.pi * freq * t) ** 2)) *
-                   np.exp(-(np.pi * freq * t) ** 2))
+            if util.is_cupy_enabled(self._use_cuda):
+                sr = sample_rate / 1000
+                t = cp.arange(-0.512 / 2, 0.512 / 2, sr)
+                out = ((1 - (2 * (cp.pi * freq * t) ** 2)) *
+                       cp.exp(-(cp.pi * freq * t) ** 2))
+            else:
+                sr = sample_rate / 1000
+                t = np.arange(-0.512 / 2, 0.512 / 2, sr)
+                out = ((1 - (2 * (np.pi * freq * t) ** 2)) *
+                       np.exp(-(np.pi * freq * t) ** 2))
 
             return(out)
 
         # Convolve wavelet with trace
         def convolve(chunk, w):
+            if util.is_cupy_enabled(self._use_cuda):
+                out = cp.zeros(chunk.shape)
 
-            out = np.zeros(chunk.shape)
+                for i, j in cp.ndindex(chunk.shape[:-1]):
+                    out[i, j] = cusignal.fftconvolve(chunk[i, j], w,
+                                                     mode='same')
+            else:
+                out = np.zeros(chunk.shape)
 
-            for i, j in np.ndindex(chunk.shape[:-1]):
-                out[i, j] = signal.fftconvolve(chunk[i, j], w,
-                                               mode='same')
+                for i, j in np.ndindex(chunk.shape[:-1]):
+                    out[i, j] = signal.fftconvolve(chunk[i, j], w,
+                                                   mode='same')
 
             return(out)
 
@@ -267,7 +278,7 @@ class Frequency(BaseAttributes):
             f1, f2, f3, f4 = freqs
             sr = sample_rate / 1000
 
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 t = cp.arange(-0.512 / 2, 0.512 / 2, sr)
             else:
                 t = np.arange(-0.512 / 2, 0.512 / 2, sr)
@@ -288,16 +299,16 @@ class Frequency(BaseAttributes):
         # Convolve wavelet with trace
         def convolve(chunk, w):
 
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cp.zeros(chunk.shape)
+
+                for i, j in np.ndindex(chunk.shape[:-1]):
+                    out[i, j] = cusignal.fftconvolve(chunk[i, j], w,
+                                                     mode='same')
             else:
                 out = np.zeros(chunk.shape)
 
-            for i, j in np.ndindex(chunk.shape[:-1]):
-                if USE_CUPY and self._use_cuda:
-                    out[i, j] = cusignal.fftconvolve(chunk[i, j], w,
-                                                     mode='same')
-                else:
+                for i, j in np.ndindex(chunk.shape[:-1]):
                     out[i, j] = signal.fftconvolve(chunk[i, j], w,
                                                    mode='same')
 

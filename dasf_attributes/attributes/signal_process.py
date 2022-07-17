@@ -18,10 +18,8 @@ try:
     import cusignal
 
     from cupyx.scipy import ndimage as cundi
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 from . import util
 from .Base import BaseAttributes
@@ -87,7 +85,7 @@ class SignalProcess(BaseAttributes):
         axes = [ax for ax in range(darray.ndim) if ax != axis]
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             result0 = darray.map_blocks(cundi.correlate1d,
                                         weights=cp.array([-0.5, 0.0, 0.5]),
                                         axis=axis, dtype=darray.dtype)
@@ -143,7 +141,7 @@ class SignalProcess(BaseAttributes):
         axes = [ax for ax in range(darray.ndim) if ax != axis]
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             result0 = darray.map_blocks(cundi.correlate1d,
                                         weights=cp.array([0.232905, 0.002668,
                                                           -0.471147, 0.002668,
@@ -201,7 +199,7 @@ class SignalProcess(BaseAttributes):
 
         # Function to interpolate seismic to new scaling
         def interp(chunk, cdf, bins):
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cp.interp(chunk.ravel(), bins, cdf)
             else:
                 out = np.interp(chunk.ravel(), bins, cdf)
@@ -212,7 +210,7 @@ class SignalProcess(BaseAttributes):
         da_min = darray.min()
 
         darray, chunks_init = self.create_array(darray, preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             hist, bins = da.histogram(darray,
                                       bins=cp.linspace(da_min, da_max, 256,
                                                        dtype=darray.dtype))
@@ -319,7 +317,7 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             x = util.extract_patches(chunk, kernel)
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cp.sqrt(cp.mean(x ** 2, axis=(-3, -2, -1)))
             else:
                 out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
@@ -396,7 +394,7 @@ class SignalProcess(BaseAttributes):
         kernel = tuple(2 * (4 * np.array(sigmas) + 0.5).astype(int) + 1)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             result = darray.map_blocks(cundi.gaussian_gradient_magnitude,
                                        sigma=sigmas, dtype=darray.dtype)
         else:
@@ -435,7 +433,7 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             x = util.extract_patches(chunk, (1, 1, kernel[-1]))
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 out = cp.trapz(x).reshape(x.shape[:3])
             else:
                 out = np.trapz(x).reshape(x.shape[:3])
@@ -475,7 +473,7 @@ class SignalProcess(BaseAttributes):
         result : Dask Array
         """
 
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             phi = cp.deg2rad(rotation)
         else:
             phi = np.deg2rad(rotation)
@@ -483,7 +481,7 @@ class SignalProcess(BaseAttributes):
         kernel = (1, 1, 25)
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:

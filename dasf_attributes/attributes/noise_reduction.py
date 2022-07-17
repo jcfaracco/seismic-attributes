@@ -14,10 +14,8 @@ from scipy import ndimage as ndi
 
 try:
     from cupyx.scipy import ndimage as cundi
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 from . import util
 from .Base import BaseAttributes
@@ -75,7 +73,7 @@ class NoiseReduction(BaseAttributes):
         kernel = tuple((np.array(sigmas) * 2.5).astype(int))
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             result = darray.map_blocks(cundi.gaussian_filter, sigma=sigmas,
                                        dtype=darray.dtype)
         else:
@@ -113,7 +111,7 @@ class NoiseReduction(BaseAttributes):
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             result = darray.map_blocks(cundi.median_filter, size=kernel,
                                        dtype=darray.dtype)
         else:
@@ -151,7 +149,7 @@ class NoiseReduction(BaseAttributes):
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             result = darray.map_blocks(cundi.uniform_filter, size=kernel,
                                        dtype=darray.dtype)
         else:

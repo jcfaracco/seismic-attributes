@@ -13,10 +13,8 @@ import numpy as np
 
 try:
     import cupy as cp
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 from . import util
 from .Base import BaseAttributes
@@ -89,7 +87,7 @@ class LBPAttributes(BaseAttributes):
 
         hw = (2, 0, 0)
 
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             kernel = (darray.shape[0], darray.shape[1], darray.shape[2])
         else:
             kernel = (min(int((darray.shape[0] + 4) / 4), 1000),
@@ -268,7 +266,7 @@ class LBPAttributes(BaseAttributes):
             # XXX: we need to handle Numpy here due to Dask issue #7482
             return (cp.asnumpy(out).reshape(dimx, dimy, dimz))
 
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu,
                                             dtype=cp.float32)
         else:

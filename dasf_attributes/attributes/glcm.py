@@ -11,17 +11,13 @@ Grey-Level Co-occurrence Matrix for Seismic Data
 import dask.array as da
 import numpy as np
 
-from .Base import BaseAttributes
-
 try:
     import cupy as cp
 
     from glcm_cupy import glcm as glcm_gpu
     from glcm_cupy import conf as glcm_conf
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 try:
     from skimage.feature import graycomatrix, graycoprops
@@ -29,6 +25,9 @@ except Exception:
     # XXX: Deprecated after release 0.19 of scikit-image
     from skimage.feature import greycomatrix as graycomatrix
     from skimage.feature import greycoprops as graycoprops
+
+from . import util
+from .Base import BaseAttributes
 
 
 class GLCMAttributes(BaseAttributes):
@@ -139,7 +138,7 @@ class GLCMAttributes(BaseAttributes):
 
             return cp.asarray(new_atts, dtype=block.dtype)
 
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             if glcm_type == "contrast":
                 glcm_type = glcm_conf.CONTRAST
             elif glcm_type == "homogeneity":

@@ -14,10 +14,8 @@ import numpy as np
 
 try:
     import cupy as cp
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 from . import util
 
@@ -44,7 +42,7 @@ class BaseAttributes(object):
         """
         self._use_cuda = use_cuda
 
-        if not USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             print("Warning: skipping CUDA usage. Check if this system "
                   "supports CUDA or if it installed", file=sys.stderr)
 

@@ -17,10 +17,8 @@ try:
     import cupy as cp
 
     from cupyx.scipy import ndimage as cundi
-
-    USE_CUPY = True
 except Exception:
-    USE_CUPY = False
+    pass
 
 from . import util
 from .Base import BaseAttributes
@@ -69,14 +67,14 @@ class EdgeDetection(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 cp.seterr(all='ignore')
             else:
                 np.seterr(all='ignore')
 
             x = util.extract_patches(chunk, kernel)
 
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 s1 = cp.sum(x, axis=(-3, -2)) ** 2
                 s2 = cp.sum(x ** 2, axis=(-3, -2))
             else:
@@ -123,7 +121,7 @@ class EdgeDetection(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(gi2, gj2, gk2, gigj, gigk, gjgk):
-            if USE_CUPY and self._use_cuda:
+            if util.is_cupy_enabled(self._use_cuda):
                 cp.seterr(all='ignore')
 
                 chunk_shape = gi2.shape
@@ -170,7 +168,7 @@ class EdgeDetection(BaseAttributes):
         gk = sp(self._use_cuda).first_derivative(darray, axis=2)
 
         # Compute the Inner Product of the Gradients
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             gi2 = (gi * gi).map_blocks(cundi.uniform_filter, size=kernel,
                                        dtype=darray.dtype)
             gj2 = (gj * gj).map_blocks(cundi.uniform_filter, size=kernel,
@@ -320,7 +318,7 @@ class EdgeDetection(BaseAttributes):
         gk = sp(self._use_cuda).first_derivative(darray, axis=2)
 
         # Compute the Inner Product of the Gradients
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             gi2 = (gi * gi).map_blocks(cundi.uniform_filter, size=kernel,
                                        dtype=darray.dtype)
             gj2 = (gj * gj).map_blocks(cundi.uniform_filter, size=kernel,
@@ -410,7 +408,7 @@ class EdgeDetection(BaseAttributes):
         vz = sp(self._use_cuda).first_derivative(v, axis=2)
 
         # Smooth Gradients
-        if USE_CUPY and self._use_cuda:
+        if util.is_cupy_enabled(self._use_cuda):
             ux = ux.map_blocks(cundi.uniform_filter, size=kernel,
                                dtype=ux.dtype)
             uy = uy.map_blocks(cundi.uniform_filter, size=kernel,
