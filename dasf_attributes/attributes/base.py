@@ -12,11 +12,6 @@ import sys
 import dask.array as da
 import numpy as np
 
-try:
-    import cupy as cp
-except Exception:
-    pass
-
 from . import util
 
 

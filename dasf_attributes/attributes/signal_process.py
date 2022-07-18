@@ -361,7 +361,7 @@ class SignalProcess(BaseAttributes):
                                                 preview=preview)
         rms = self.rms(darray, kernel)
         rms_max = rms.max()
-        
+
         darray = util.trim_dask_array(darray, kernel)
         rms = util.trim_dask_array(rms, kernel)
 

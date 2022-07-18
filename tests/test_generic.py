@@ -11,7 +11,7 @@ try:
 except Exception:
     pass
     
-from .test_conf import block_shape_list
+from tests.test_conf import block_shape_list
 
 from unittest import TestCase
 from parameterized import parameterized, parameterized_class
@@ -34,30 +34,6 @@ class TestNewModules(TestCase):
         all_cls.sort()
 
         self.assertListEqual(defined_cls, all_cls)
-
-
-class TestShapeMaker(type):
-    def __new__(cls, name, bases, attrs):
-        funcs = [func for func in dir(cls.obj) if callable(getattr(cls.obj, func)) and \
-                                             not func.startswith("__") and \
-                                             func != "create_array"]
-
-        callables = dict([
-            (meth_name, meth) for (meth_name, meth) in attrs.items() if
-            meth_name.startswith('_test_shape')
-        ])
-
-        for meth_name, meth in callables.items():
-            assert callable(meth)
-            _, _, testname = meth_name.partition('_test')
-
-            # inject methods: test{testname}_v4,6(self)
-            for func in funcs: # suffix, arg in (('_false', False), ('_true', True)):
-                testable_name = 'test_shape_{0}'.format(func)
-                testable = lambda self, obj=cls.obj, func=func: meth(self, obj, func)
-                attrs[testable_name] = testable
-
-        return type.__new__(cls, name, bases, attrs)
 
 
 def parameterize_all_methods_attributes():

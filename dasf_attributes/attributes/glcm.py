@@ -152,7 +152,8 @@ class GLCMAttributes(BaseAttributes):
             elif glcm_type == "var":
                 glcm_type = glcm_conf.VAR
             else:
-                raise NotImplementedError("GLCM type '%s' is not supported." % glcm_type)
+                raise NotImplementedError("GLCM type '%s' is not supported."
+                                          % glcm_type)
 
             result = darray.map_blocks(__glcm_block_cu, glcm_type, levels,
                                        direction, distance, mi, ma,
@@ -161,7 +162,8 @@ class GLCMAttributes(BaseAttributes):
             if glcm_type == "asm":
                 glcm_type = "ASM"
             elif glcm_type == "mean" or glcm_type == "var":
-                raise NotImplementedError("GLCM type '%s' is not supported." % glcm_type)
+                raise NotImplementedError("GLCM type '%s' is not supported."
+                                          % glcm_type)
             result = darray.map_blocks(__glcm_block, glcm_type, levels,
                                        direction, distance, mi, ma,
                                        dtype=darray.dtype)
