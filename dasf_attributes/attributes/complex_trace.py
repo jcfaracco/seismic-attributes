@@ -10,6 +10,7 @@ Complex Trace Attributes for Seismic Data
 # Import Libraries
 import dask.array as da
 import numpy as np
+from scipy import signal
 
 try:
     import cupy as cp
@@ -18,8 +19,8 @@ except Exception:
     pass
 
 from . import util
-from .Base import BaseAttributes
-from .SignalProcess import SignalProcess as sp
+from .base import BaseAttributes
+from .signal_process import SignalProcess as sp
 
 
 class ComplexAttributes(BaseAttributes):
@@ -89,7 +90,7 @@ class ComplexAttributes(BaseAttributes):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
-            analytical_trace = darray.map_blocks(util.hilbert,
+            analytical_trace = darray.map_blocks(signal.hilbert,
                                                  dtype=darray.dtype)
         result = util.trim_dask_array(analytical_trace, kernel)
 
@@ -125,7 +126,7 @@ class ComplexAttributes(BaseAttributes):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
-            analytical_trace = darray.map_blocks(util.hilbert,
+            analytical_trace = darray.map_blocks(signal.hilbert,
                                                  dtype=darray.dtype)
         result = da.absolute(analytical_trace)
         result = util.trim_dask_array(result, kernel)
@@ -162,7 +163,7 @@ class ComplexAttributes(BaseAttributes):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
-            analytical_trace = darray.map_blocks(util.hilbert,
+            analytical_trace = darray.map_blocks(signal.hilbert,
                                                  dtype=darray.dtype)
         result = da.rad2deg(da.angle(analytical_trace))
         result = util.trim_dask_array(result, kernel)

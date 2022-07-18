@@ -18,7 +18,7 @@ except Exception:
     pass
 
 from . import util
-from .Base import BaseAttributes
+from .base import BaseAttributes
 
 
 class Frequency(BaseAttributes):

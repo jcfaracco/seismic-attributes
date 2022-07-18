@@ -319,44 +319,9 @@ def local_events(in_data, comparator):
     plus = in_data.take(idx + 1, axis=-1, mode='clip')
     minus = in_data.take(idx - 1, axis=-1, mode='clip')
 
-    result = np.ones(in_data.shape, dtype=np.bool)
+    result = np.ones(in_data.shape, dtype=bool)
 
     result &= comparator(trace, plus)
     result &= comparator(trace, minus)
 
     return(result)
-
-
-def hilbert(in_data):
-    """
-    Description
-    -----------
-    Perform Hilbert Transform on input data
-
-    Parameters
-    ----------
-    in_data : Dask Array, data to convert
-
-    Returns
-    -------
-    out : Numpy Array
-    """
-
-    N = in_data.shape[-1]
-
-    Xf = np.fft.fft(in_data, n=N, axis=-1)
-
-    h = np.zeros(N)
-    if N % 2 == 0:
-        h[0] = h[N // 2] = 1
-        h[1:N // 2] = 2
-    else:
-        h[0] = 1
-        h[1:(N + 1) // 2] = 2
-
-    if in_data.ndim > 1:
-        ind = [np.newaxis] * in_data.ndim
-        ind[-1] = slice(None)
-        h = h[ind]
-    x = np.fft.ifft(Xf * h, axis=-1)
-    return x

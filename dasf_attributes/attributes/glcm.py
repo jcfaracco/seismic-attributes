@@ -27,7 +27,7 @@ except Exception:
     from skimage.feature import greycoprops as graycoprops
 
 from . import util
-from .Base import BaseAttributes
+from .base import BaseAttributes
 
 
 class GLCMAttributes(BaseAttributes):
@@ -152,12 +152,16 @@ class GLCMAttributes(BaseAttributes):
             elif glcm_type == "var":
                 glcm_type = glcm_conf.VAR
             else:
-                raise Exception("GLCM type '%s' is not supported." % glcm_type)
+                raise NotImplementedError("GLCM type '%s' is not supported." % glcm_type)
 
             result = darray.map_blocks(__glcm_block_cu, glcm_type, levels,
                                        direction, distance, mi, ma,
                                        dtype=darray.dtype)
         else:
+            if glcm_type == "asm":
+                glcm_type = "ASM"
+            elif glcm_type == "mean" or glcm_type == "var":
+                raise NotImplementedError("GLCM type '%s' is not supported." % glcm_type)
             result = darray.map_blocks(__glcm_block, glcm_type, levels,
                                        direction, distance, mi, ma,
                                        dtype=darray.dtype)

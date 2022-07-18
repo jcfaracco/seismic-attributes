@@ -11,18 +11,20 @@ Edge Detection Attributes for Seismic Data
 
 import dask.array as da
 import numpy as np
+from scipy import signal
 from scipy import ndimage as ndi
 
 try:
     import cupy as cp
+    import cusignal
 
     from cupyx.scipy import ndimage as cundi
 except Exception:
     pass
 
 from . import util
-from .Base import BaseAttributes
-from .SignalProcess import SignalProcess as sp
+from .base import BaseAttributes
+from .signal_process import SignalProcess as sp
 
 
 class EdgeDetection(BaseAttributes):
@@ -255,10 +257,12 @@ class EdgeDetection(BaseAttributes):
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel, preview)
-        hilbert = darray.map_blocks(util.hilbert, dtype=darray.dtype)
+        if util.is_cupy_enabled(self._use_cuda):
+            hilbert = darray.map_blocks(cusignal.hilbert, dtype=darray.dtype)
+        else:
+            hilbert = darray.map_blocks(signal.hilbert, dtype=darray.dtype)
         result = hilbert.map_blocks(operation, kernel=kernel,
                                     dtype=darray.dtype)
-        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
         return (result)

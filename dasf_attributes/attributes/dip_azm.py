@@ -20,8 +20,8 @@ except Exception:
     pass
 
 from . import util
-from .Base import BaseAttributes
-from .SignalProcess import SignalProcess as sp
+from .base import BaseAttributes
+from .signal_process import SignalProcess as sp
 
 
 class DipAzm(BaseAttributes):

@@ -22,7 +22,7 @@ except Exception:
     pass
 
 from . import util
-from .Base import BaseAttributes
+from .base import BaseAttributes
 
 
 class SignalProcess(BaseAttributes):
@@ -329,7 +329,6 @@ class SignalProcess(BaseAttributes):
         result = darray.map_blocks(operation, kernel=kernel,
                                    dtype=darray.dtype,
                                    chunks=darray.chunks)
-        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
         return(result)
@@ -362,6 +361,10 @@ class SignalProcess(BaseAttributes):
                                                 preview=preview)
         rms = self.rms(darray, kernel)
         rms_max = rms.max()
+        
+        darray = util.trim_dask_array(darray, kernel)
+        rms = util.trim_dask_array(rms, kernel)
+
         result = darray * (1.5 - (rms / rms_max))
         result[da.isnan(result)] = 0
 

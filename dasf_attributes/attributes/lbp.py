@@ -17,7 +17,7 @@ except Exception:
     pass
 
 from . import util
-from .Base import BaseAttributes
+from .base import BaseAttributes
 
 from skimage.feature import local_binary_pattern
 
