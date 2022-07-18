@@ -11,7 +11,7 @@ try:
 except Exception:
     pass
     
-from tests.test_conf import block_shape_list
+from test_conf import block_shape_list
 
 from unittest import TestCase
 from parameterized import parameterized, parameterized_class
