@@ -1,5 +1,6 @@
 """Test Basic functions"""
 
+import pytest
 import inspect
 import unittest
 import numpy as np
@@ -11,8 +12,6 @@ try:
 except Exception:
     pass
     
-from test_conf import block_shape_list
-
 from unittest import TestCase
 from parameterized import parameterized, parameterized_class
 
@@ -38,6 +37,21 @@ class TestNewModules(TestCase):
 
 def parameterize_all_methods_attributes():
     classes = ["attributes." + name for name, obj in inspect.getmembers(attributes) if inspect.isclass(obj)]
+
+    block_shape_list = [
+        "gradient_dips",
+        "gradient_structure_tensor",
+        "gst_2D_dips",
+        "volume_curvature",
+        "trace_agc",
+        "bandpass_filter",
+        "cwt_ormsby",
+        "cwt_ricker",
+        "highpass_filter",
+        "lowpass_filter",
+        "phase_rotation",
+        "rescale_amplitude_range"
+        ]
     
     functions = []
     for cls in classes:
