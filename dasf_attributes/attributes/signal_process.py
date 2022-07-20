@@ -18,7 +18,7 @@ try:
     import cusignal
 
     from cupyx.scipy import ndimage as cundi
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -111,7 +111,7 @@ class SignalProcess(BaseAttributes):
                                          axis=axes[1], dtype=darray.dtype)
         result = util.trim_dask_array(result2, kernel)
 
-        return(result)
+        return result
 
     def second_derivative(self, darray, axis=-1, preview=None):
         """
@@ -172,7 +172,7 @@ class SignalProcess(BaseAttributes):
                                          axis=axes[1], dtype=darray.dtype)
         result = util.trim_dask_array(result2, kernel)
 
-        return(result)
+        return result
 
     def histogram_equalization(self, darray, preview=None):
         """
@@ -204,7 +204,7 @@ class SignalProcess(BaseAttributes):
             else:
                 out = np.interp(chunk.ravel(), bins, cdf)
 
-            return(out.reshape(chunk.shape))
+            return out.reshape(chunk.shape)
 
         da_max = darray.max()
         da_min = darray.min()
@@ -225,7 +225,7 @@ class SignalProcess(BaseAttributes):
         result = darray.map_blocks(interp, cdf=cdf, bins=bins,
                                    dtype=darray.dtype)
 
-        return(result)
+        return result
 
     def time_gain(self, darray, gain_val=1.5, preview=None):
         """
@@ -258,7 +258,7 @@ class SignalProcess(BaseAttributes):
 
         result = darray * gain
 
-        return(result)
+        return result
 
     def rescale_amplitude_range(self, darray, min_val, max_val, preview=None):
         """
@@ -288,7 +288,7 @@ class SignalProcess(BaseAttributes):
         darray, chunks_init = self.create_array(darray, preview=preview)
         result = da.clip(darray, min_val, max_val)
 
-        return(result)
+        return result
 
     def rms(self, darray, kernel=(1, 1, 9), preview=None):
         """
@@ -322,7 +322,7 @@ class SignalProcess(BaseAttributes):
             else:
                 out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
 
-            return(out)
+            return out
 
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
@@ -331,7 +331,7 @@ class SignalProcess(BaseAttributes):
                                    chunks=darray.chunks)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def trace_agc(self, darray, kernel=(1, 1, 9), preview=None):
         """
@@ -368,7 +368,7 @@ class SignalProcess(BaseAttributes):
         result = darray * (1.5 - (rms / rms_max))
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def gradient_magnitude(self, darray, sigmas=(1, 1, 1), preview=None):
         """
@@ -406,7 +406,7 @@ class SignalProcess(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def reflection_intensity(self, darray, kernel=(1, 1, 9), preview=None):
         """
@@ -441,7 +441,7 @@ class SignalProcess(BaseAttributes):
             else:
                 out = np.trapz(x).reshape(x.shape[:3])
 
-            return(out)
+            return out
 
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
@@ -450,7 +450,7 @@ class SignalProcess(BaseAttributes):
                                    chunks=chunks_init)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def phase_rotation(self, darray, rotation, preview=None):
         """
@@ -496,4 +496,4 @@ class SignalProcess(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result

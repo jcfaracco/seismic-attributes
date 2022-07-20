@@ -21,7 +21,7 @@ def segy_read(segy_path, out_path, out_name):
         for i in chunk:
             dset[i[0], i[1], :] = segy_file.trace.raw[i[2]]
 
-        return(chunk)
+        return chunk
 
     segy_file = segyio.open(segy_path)
     trace_inlines = segy_file.attributes(segyio.TraceField.INLINE_3D)[:]

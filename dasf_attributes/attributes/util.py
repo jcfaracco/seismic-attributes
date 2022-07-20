@@ -16,9 +16,9 @@ import psutil
 try:
     import cupy as cp
 
-    USE_CUPY = True
-except Exception:
-    USE_CUPY = False
+    USE_CUPY=True
+except ImportError:
+    USE_CUPY=False
 
 # Ignore warning
 import warnings
@@ -131,7 +131,7 @@ def compute_chunk_size(shape, byte_size, kernel=None, preview=None):
                 Mj = Mj[Mj < M]
                 chunks = [shape[0], Mj.argmax(), kkk]
 
-    return(tuple(chunks))
+    return tuple(chunks)
 
 
 def trim_dask_array(in_data, kernel, hw=None, boundary='reflect'):
@@ -155,7 +155,7 @@ def trim_dask_array(in_data, kernel, hw=None, boundary='reflect'):
         hw = tuple(np.array(kernel) // 2)
     axes = {0: hw[0], 1: hw[1], 2: hw[2]}
 
-    return(da.overlap.trim_internal(in_data, axes=axes, boundary=boundary))
+    return da.overlap.trim_internal(in_data, axes=axes, boundary=boundary)
 
 
 def available_volumes(file_path):
@@ -177,7 +177,7 @@ def available_volumes(file_path):
     with h5py.File(file_path) as f:
         vols = [i for i in f]
 
-    return(vols)
+    return vols
 
 
 def read(file_path):
@@ -197,7 +197,7 @@ def read(file_path):
 
     data = h5py.File(file_path)['data']
 
-    return(data)
+    return data
 
 
 def save(out_data, out_file):
@@ -240,7 +240,7 @@ def convert_dtype(in_data, min_val, max_val, to_dtype):
 
     # Check if data is already in correct format
     if in_data.dtype == to_dtype:
-        return(in_data)
+        return in_data
     else:
         in_data = da.clip(in_data, min_val, max_val)
         if to_dtype == np.int8:
@@ -259,7 +259,7 @@ def convert_dtype(in_data, min_val, max_val, to_dtype):
         else:
             raise Exception('Not a valid dtype')
 
-    return(out)
+    return out
 
 
 def extract_patches(in_data, kernel, use_cuda=False):
@@ -295,7 +295,7 @@ def extract_patches(in_data, kernel, use_cuda=False):
         patches = np.lib.stride_tricks.as_strided(in_data,
                                                   shape=shape,
                                                   strides=strides)
-    return(patches)
+    return patches
 
 
 def local_events(in_data, comparator):
@@ -324,4 +324,4 @@ def local_events(in_data, comparator):
     result &= comparator(trace, plus)
     result &= comparator(trace, minus)
 
-    return(result)
+    return result

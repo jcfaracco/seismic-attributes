@@ -15,7 +15,7 @@ import numpy as np
 from . import util
 
 
-class BaseAttributes(object):
+class BaseAttributes:
     """
     Description
     -----------
@@ -93,4 +93,4 @@ class BaseAttributes(object):
                 hw = tuple(np.array(kernel) // 2)
             darray = da.overlap.overlap(darray, depth=hw, boundary=boundary)
 
-        return(darray, chunks_init)
+        return (darray, chunks_init)

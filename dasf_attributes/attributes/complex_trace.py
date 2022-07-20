@@ -15,7 +15,7 @@ from scipy import signal
 try:
     import cupy as cp
     import cusignal
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -90,11 +90,15 @@ class ComplexAttributes(BaseAttributes):
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
-            analytical_trace = darray.map_blocks(signal.hilbert,
+            # Avoiding return complex128
+            def signal_hilbert(block):
+                return signal.hilbert(block).real
+
+            analytical_trace = darray.map_blocks(signal_hilbert,
                                                  dtype=darray.dtype)
         result = util.trim_dask_array(analytical_trace, kernel)
 
-        return(result)
+        return result
 
     def envelope(self, darray, preview=None):
         """
@@ -131,7 +135,7 @@ class ComplexAttributes(BaseAttributes):
         result = da.absolute(analytical_trace)
         result = util.trim_dask_array(result, kernel)
 
-        return(result)
+        return result
 
     def instantaneous_phase(self, darray, preview=None):
         """
@@ -168,7 +172,7 @@ class ComplexAttributes(BaseAttributes):
         result = da.rad2deg(da.angle(analytical_trace))
         result = util.trim_dask_array(result, kernel)
 
-        return(result)
+        return result
 
     def cosine_instantaneous_phase(self, darray, preview=None):
         """
@@ -197,7 +201,7 @@ class ComplexAttributes(BaseAttributes):
         phase = self.instantaneous_phase(darray)
         result = da.rad2deg(da.angle(phase))
 
-        return(result)
+        return result
 
     def relative_amplitude_change(self, darray, preview=None):
         """
@@ -228,7 +232,7 @@ class ComplexAttributes(BaseAttributes):
         result = env_prime / env
         result = da.clip(result, -1, 1)
 
-        return(result)
+        return result
 
     def amplitude_acceleration(self, darray, preview=None):
         """
@@ -257,7 +261,7 @@ class ComplexAttributes(BaseAttributes):
         rac = self.relative_amplitude_change(darray)
         result = sp(self._use_cuda).first_derivative(rac, axis=-1)
 
-        return(result)
+        return result
 
     def instantaneous_frequency(self, darray, sample_rate=4, preview=None):
         """
@@ -295,7 +299,7 @@ class ComplexAttributes(BaseAttributes):
         phase_prime = sp(self._use_cuda).first_derivative(phase, axis=-1)
         result = da.absolute((phase_prime / (2.0 * np.pi) * fs))
 
-        return(result)
+        return result
 
     def instantaneous_bandwidth(self, darray, preview=None):
         """
@@ -324,7 +328,7 @@ class ComplexAttributes(BaseAttributes):
         rac = self.relative_amplitude_change(darray)
         result = da.absolute(rac) / (2.0 * np.pi)
 
-        return(result)
+        return result
 
     def dominant_frequency(self, darray, sample_rate=4, preview=None):
         """
@@ -355,7 +359,7 @@ class ComplexAttributes(BaseAttributes):
         inst_band = self.instantaneous_bandwidth(darray)
         result = da.hypot(inst_freq, inst_band)
 
-        return(result)
+        return result
 
     def frequency_change(self, darray, sample_rate=4, preview=None):
         """
@@ -385,7 +389,7 @@ class ComplexAttributes(BaseAttributes):
         inst_freq = self.instantaneous_frequency(darray, sample_rate)
         result = sp(self._use_cuda).first_derivative(inst_freq, axis=-1)
 
-        return(result)
+        return result
 
     def sweetness(self, darray, sample_rate=4, preview=None):
         """
@@ -413,7 +417,7 @@ class ComplexAttributes(BaseAttributes):
 
         def func(chunk):
             chunk[chunk < 5] = 5
-            return(chunk)
+            return chunk
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         inst_freq = self.instantaneous_frequency(darray, sample_rate)
@@ -422,7 +426,7 @@ class ComplexAttributes(BaseAttributes):
 
         result = env / inst_freq
 
-        return(result)
+        return result
 
     def quality_factor(self, darray, sample_rate=4, preview=None):
         """
@@ -455,7 +459,7 @@ class ComplexAttributes(BaseAttributes):
 
         result = (np.pi * inst_freq) / rac
 
-        return(result)
+        return result
 
     def response_phase(self, darray, preview=None):
         """
@@ -481,15 +485,24 @@ class ComplexAttributes(BaseAttributes):
         """
 
         def operation(chunk1, chunk2, chunk3):
-            out = np.zeros(chunk1.shape)
-            for i, j in np.ndindex(out.shape[:-1]):
-                ints = np.unique(chunk3[i, j, :])
-                for ii in ints:
-                    idx = np.where(chunk3[i, j, :] == ii)[0]
-                    peak = idx[chunk1[i, j, idx].argmax()]
-                    out[i, j, idx] = chunk2[i, j, peak]
+            if util.is_cupy_enabled(self._use_cuda):
+                out = cp.zeros(chunk1.shape)
+                for i, j in cp.ndindex(out.shape[:-1]):
+                    ints = cp.unique(chunk3[i, j, :])
+                    for ii in ints:
+                        idx = cp.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk2[i, j, peak]
+            else:
+                out = np.zeros(chunk1.shape)
+                for i, j in np.ndindex(out.shape[:-1]):
+                    ints = np.unique(chunk3[i, j, :])
+                    for ii in ints:
+                        idx = np.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk2[i, j, peak]
 
-            return(out)
+            return out
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
@@ -501,7 +514,7 @@ class ComplexAttributes(BaseAttributes):
                                dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def response_frequency(self, darray, sample_rate=4, preview=None):
         """
@@ -528,15 +541,24 @@ class ComplexAttributes(BaseAttributes):
         """
 
         def operation(chunk1, chunk2, chunk3):
-            out = np.zeros(chunk1.shape)
-            for i, j in np.ndindex(out.shape[:-1]):
-                ints = np.unique(chunk3[i, j, :])
-                for ii in ints:
-                    idx = np.where(chunk3[i, j, :] == ii)[0]
-                    peak = idx[chunk1[i, j, idx].argmax()]
-                    out[i, j, idx] = chunk2[i, j, peak]
+            if util.is_cupy_enabled(self._use_cuda):
+                out = cp.zeros(chunk1.shape)
+                for i, j in cp.ndindex(out.shape[:-1]):
+                    ints = cp.unique(chunk3[i, j, :])
+                    for ii in ints:
+                        idx = cp.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk2[i, j, peak]
+            else:
+                out = np.zeros(chunk1.shape)
+                for i, j in np.ndindex(out.shape[:-1]):
+                    ints = np.unique(chunk3[i, j, :])
+                    for ii in ints:
+                        idx = np.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk2[i, j, peak]
 
-            return(out)
+            return out
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
@@ -548,7 +570,7 @@ class ComplexAttributes(BaseAttributes):
                                dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def response_amplitude(self, darray, preview=None):
         """
@@ -574,27 +596,39 @@ class ComplexAttributes(BaseAttributes):
         """
 
         def operation(chunk1, chunk2, chunk3):
-            out = np.zeros(chunk1.shape)
-            for i, j in np.ndindex(out.shape[:-1]):
-                ints = np.unique(chunk3[i, j, :])
+            if util.is_cupy_enabled(self._use_cuda):
+                out = cp.zeros(chunk1.shape)
+                for i, j in cp.ndindex(out.shape[:-1]):
+                    ints = cp.unique(chunk3[i, j, :])
 
-                for ii in ints:
-                    idx = np.where(chunk3[i, j, :] == ii)[0]
-                    peak = idx[chunk1[i, j, idx].argmax()]
-                    out[i, j, idx] = chunk2[i, j, peak]
+                    for ii in ints:
+                        idx = cp.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk2[i, j, peak]
+            else:
+                out = np.zeros(chunk1.shape)
+                for i, j in np.ndindex(out.shape[:-1]):
+                    ints = np.unique(chunk3[i, j, :])
 
-            return(out)
+                    for ii in ints:
+                        idx = np.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk2[i, j, peak]
+
+            return out
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
         troughs = env.map_blocks(util.local_events, comparator=np.less,
                                  dtype=darray.dtype)
         troughs = troughs.cumsum(axis=-1)
+
+        darray = darray.rechunk(env.chunks)
         result = da.map_blocks(operation, env, darray, troughs,
                                dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def apparent_polarity(self, darray, preview=None):
         """
@@ -619,25 +653,39 @@ class ComplexAttributes(BaseAttributes):
         result : Dask Array
         """
         def operation(chunk1, chunk2, chunk3):
-            out = np.zeros(chunk1.shape)
-            for i, j in np.ndindex(out.shape[:-1]):
-                ints = np.unique(chunk3[i, j, :])
+            print("oper", chunk1.shape, chunk2.shape, chunk3.shape)
+            if util.is_cupy_enabled(self._use_cuda):
+                out = cp.zeros(chunk1.shape)
+                for i, j in cp.ndindex(out.shape[:-1]):
+                    ints = cp.unique(chunk3[i, j, :])
 
-                for ii in ints:
-                    idx = np.where(chunk3[i, j, :] == ii)[0]
-                    peak = idx[chunk1[i, j, idx].argmax()]
-                    out[i, j, idx] = chunk1[i, j, peak] * np.sign(chunk2[i, j,
-                                                                         peak])
+                    for ii in ints:
+                        idx = cp.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk1[i, j, peak] * cp.sign(chunk2[i, j,
+                                                                             peak])
+            else:
+                out = np.zeros(chunk1.shape)
+                for i, j in np.ndindex(out.shape[:-1]):
+                    ints = np.unique(chunk3[i, j, :])
 
-            return(out)
+                    for ii in ints:
+                        idx = np.where(chunk3[i, j, :] == ii)[0]
+                        peak = idx[chunk1[i, j, idx].argmax()]
+                        out[i, j, idx] = chunk1[i, j, peak] * np.sign(chunk2[i, j,
+                                                                             peak])
+
+            return out
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
         troughs = env.map_blocks(util.local_events, comparator=np.less,
                                  dtype=darray.dtype)
         troughs = troughs.cumsum(axis=-1)
+
+        darray = darray.rechunk(env.chunks)
         result = da.map_blocks(operation, env, darray, troughs,
                                dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result

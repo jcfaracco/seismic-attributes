@@ -13,7 +13,7 @@ import numpy as np
 
 try:
     import cupy as cp
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -81,7 +81,7 @@ class LBPAttributes(BaseAttributes):
         lbp = darray.map_blocks(__local_binary_pattern, dtype=darray.dtype)
         result = util.trim_dask_array(lbp, kernel, hw)
 
-        return(result)
+        return result
 
     def local_binary_pattern_diag_3d(self, darray, preview=None):
 
@@ -142,7 +142,7 @@ class LBPAttributes(BaseAttributes):
                         num = np.sum(weights * mask_vec)
 
                         img_lbp[ih + 1, iw + 1, iz + 1] = num
-            return(img_lbp)
+            return img_lbp
 
         def __local_binary_pattern_diag_3d_cu(block):
             __lbp_gpu = cp.RawKernel(r'''
@@ -279,4 +279,4 @@ class LBPAttributes(BaseAttributes):
         result = result.map_blocks(__local_binary_pattern_unique, unique,
                                    dtype=result.dtype)
 
-        return(result)
+        return result

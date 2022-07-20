@@ -14,7 +14,7 @@ from scipy import ndimage as ndi
 
 try:
     from cupyx.scipy import ndimage as cundi
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -82,7 +82,7 @@ class NoiseReduction(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def median(self, darray, kernel=(3, 3, 3), preview=None):
         """
@@ -120,7 +120,7 @@ class NoiseReduction(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def convolution(self, darray, kernel=(3, 3, 3), preview=None):
         """
@@ -158,4 +158,4 @@ class NoiseReduction(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result

@@ -16,12 +16,12 @@ try:
 
     from glcm_cupy import glcm as glcm_gpu
     from glcm_cupy import conf as glcm_conf
-except Exception:
+except ImportError:
     pass
 
 try:
     from skimage.feature import graycomatrix, graycoprops
-except Exception:
+except ImportError:
     # XXX: Deprecated after release 0.19 of scikit-image
     from skimage.feature import greycomatrix as graycomatrix
     from skimage.feature import greycoprops as graycoprops
@@ -168,7 +168,7 @@ class GLCMAttributes(BaseAttributes):
                                        direction, distance, mi, ma,
                                        dtype=darray.dtype)
 
-        return(result)
+        return result
 
     def glcm_contrast(self, darray, levels=256, preview=None):
         return self._glcm_generic(darray, "contrast", levels)

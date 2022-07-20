@@ -16,7 +16,7 @@ try:
     import cupy as cp
 
     from cupyx.scipy import ndimage as cundi
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -102,7 +102,7 @@ class DipAzm(BaseAttributes):
                                             boundary='reflect',
                                             dtype=darray.dtype, size=kernel)
 
-        return(il_dip, xl_dip)
+        return (il_dip, xl_dip)
 
     def gradient_structure_tensor(self, darray, kernel, preview=None):
         """
@@ -181,7 +181,7 @@ class DipAzm(BaseAttributes):
                                          boundary='reflect',
                                          dtype=darray.dtype, size=kernel)
 
-        return(gi2, gj2, gk2, gigj, gigk, gjgk)
+        return (gi2, gj2, gk2, gigj, gigk, gjgk)
 
     def gst_2D_dips(self, darray, dip_factor=10, kernel=(3, 3, 3),
                     preview=None):
@@ -244,7 +244,7 @@ class DipAzm(BaseAttributes):
             out = -evecs[:, axis] / evecs[:, 2]
             out = out.reshape(shape)
 
-            return(out)
+            return out
 
         # Compute Inner Product of Gradients and Dips
         gi2, gj2, gk2, gigj, gigk, gjgk = \
@@ -260,7 +260,7 @@ class DipAzm(BaseAttributes):
         il_dip[da.isnan(il_dip)] = 0
         xl_dip[da.isnan(xl_dip)] = 0
 
-        return(il_dip, xl_dip)
+        return (il_dip, xl_dip)
 
     def gst_3D_dip(self, darray, dip_factor=10, kernel=(3, 3, 3),
                    preview=None):
@@ -344,7 +344,7 @@ class DipAzm(BaseAttributes):
 
                 dip = np.rad2deg(dip)
 
-            return(dip)
+            return dip
 
         # Compute Inner Product of Gradients and Dips
         gi2, gj2, gk2, gigj, gigk, gjgk = \
@@ -354,7 +354,7 @@ class DipAzm(BaseAttributes):
                                axis=0, dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def gst_3D_azm(self, darray, dip_factor=10, kernel=(3, 3, 3),
                    preview=None):
@@ -436,7 +436,7 @@ class DipAzm(BaseAttributes):
                 azm = np.rad2deg(azm)
                 azm[azm < 0] += 360
 
-            return(azm)
+            return azm
 
         # Compute Inner Product of Gradients and Azimuth
         gi2, gj2, gk2, gigj, gigk, gjgk = \
@@ -446,4 +446,4 @@ class DipAzm(BaseAttributes):
                                axis=0, dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result

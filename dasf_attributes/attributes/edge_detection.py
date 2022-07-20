@@ -19,7 +19,7 @@ try:
     import cusignal
 
     from cupyx.scipy import ndimage as cundi
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -86,7 +86,7 @@ class EdgeDetection(BaseAttributes):
             sembl = s1.sum(axis=-1) / s2.sum(axis=-1)
             sembl /= kernel[0] * kernel[1]
 
-            return (sembl)
+            return sembl
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel, preview)
@@ -94,7 +94,7 @@ class EdgeDetection(BaseAttributes):
                                    dtype=darray.dtype, chunks=chunks_init)
         result[da.isnan(result)] = 0
 
-        return(result)
+        return result
 
     def gradient_structure_tensor(self, darray, kernel=(3, 3, 9),
                                   preview=None):
@@ -159,7 +159,7 @@ class EdgeDetection(BaseAttributes):
             cplane = (e1 - e2) / (e1 + e2)
             cfault = cline * (1 - cplane)
 
-            return (cfault)
+            return cfault
 
         # Generate Dask Array as necessary
         darray, chunks_init = self.create_array(darray, kernel, preview)
@@ -202,7 +202,7 @@ class EdgeDetection(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return (result)
+        return result
 
     def eig_complex(self, darray, kernel=(3, 3, 9), preview=None):
         """
@@ -233,7 +233,7 @@ class EdgeDetection(BaseAttributes):
         def cov(x, ki, kj, kk):
             x = x.reshape((ki * kj, kk))
             x = np.hstack([x.real, x.imag])
-            return(x.dot(x.T))
+            return x.dot(x.T)
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
@@ -253,7 +253,7 @@ class EdgeDetection(BaseAttributes):
 
             out_data = np.asarray(out_data).reshape(patches.shape[:3])
 
-            return (out_data)
+            return out_data
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel, preview)
@@ -265,7 +265,7 @@ class EdgeDetection(BaseAttributes):
                                     dtype=darray.dtype)
         result[da.isnan(result)] = 0
 
-        return (result)
+        return result
 
     def chaos(self, darray, kernel=(3, 3, 9), preview=None):
         """
@@ -311,7 +311,7 @@ class EdgeDetection(BaseAttributes):
 
             out = (2 * e2) / (e1 + e3)
 
-            return (out)
+            return out
 
         # Generate Dask Array as necessary
         darray, chunks_init = self.create_array(darray, kernel, preview)
@@ -354,7 +354,7 @@ class EdgeDetection(BaseAttributes):
         result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
-        return (result)
+        return result
 
     def volume_curvature(self, darray_il, darray_xl, dip_factor=10,
                          kernel=(3, 3, 3), preview=None):

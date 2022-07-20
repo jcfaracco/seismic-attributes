@@ -14,7 +14,7 @@ from scipy import signal
 try:
     import cupy as cp
     import cusignal
-except Exception:
+except ImportError:
     pass
 
 from . import util
@@ -79,7 +79,7 @@ class Frequency(BaseAttributes):
             else:
                 out = signal.filtfilt(B, A, x=chunk)
 
-            return(out)
+            return out
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel=None,
@@ -89,7 +89,7 @@ class Frequency(BaseAttributes):
         B, A = signal.butter(6, freq/nyq, btype='lowpass', analog=False)
         result = darray.map_blocks(filt, B, A, dtype=darray.dtype)
 
-        return(result)
+        return result
 
     def highpass_filter(self, darray, freq, sample_rate=4, preview=None):
         """
@@ -123,7 +123,7 @@ class Frequency(BaseAttributes):
             else:
                 out = signal.filtfilt(B, A, x=chunk)
 
-            return(out)
+            return out
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel=None,
@@ -133,7 +133,7 @@ class Frequency(BaseAttributes):
         B, A = signal.butter(6, freq/nyq, btype='highpass', analog=False)
         result = darray.map_blocks(filt, B, A, dtype=darray.dtype)
 
-        return(result)
+        return result
 
     def bandpass_filter(self, darray, freq_lp, freq_hp, sample_rate=4,
                         preview=None):
@@ -169,7 +169,7 @@ class Frequency(BaseAttributes):
             else:
                 out = signal.filtfilt(B, A, x=chunk)
 
-            return(out)
+            return out
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel=None,
@@ -180,7 +180,7 @@ class Frequency(BaseAttributes):
                              analog=False)
         result = darray.map_blocks(filt, B, A, dtype=darray.dtype)
 
-        return(result)
+        return result
 
     def cwt_ricker(self, darray, freq, sample_rate=4, preview=None):
         """
@@ -221,7 +221,7 @@ class Frequency(BaseAttributes):
                 out = ((1 - (2 * (np.pi * freq * t) ** 2)) *
                        np.exp(-(np.pi * freq * t) ** 2))
 
-            return(out)
+            return out
 
         # Convolve wavelet with trace
         def convolve(chunk, w):
@@ -238,7 +238,7 @@ class Frequency(BaseAttributes):
                     out[i, j] = signal.fftconvolve(chunk[i, j], w,
                                                    mode='same')
 
-            return(out)
+            return out
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel=None,
@@ -246,7 +246,7 @@ class Frequency(BaseAttributes):
         w = wavelet(freq, sample_rate)
         result = darray.map_blocks(convolve, w=w, dtype=darray.dtype)
 
-        return(result)
+        return result
 
     def cwt_ormsby(self, darray, freqs, sample_rate=4, preview=None):
         """
@@ -294,7 +294,7 @@ class Frequency(BaseAttributes):
 
             out = (term1 - term2) - (term3 - term4)
 
-            return(out)
+            return out
 
         # Convolve wavelet with trace
         def convolve(chunk, w):
@@ -312,7 +312,7 @@ class Frequency(BaseAttributes):
                     out[i, j] = signal.fftconvolve(chunk[i, j], w,
                                                    mode='same')
 
-            return(out)
+            return out
 
         # Generate Dask Array as necessary and perform algorithm
         darray, chunks_init = self.create_array(darray, kernel=None,
@@ -320,4 +320,4 @@ class Frequency(BaseAttributes):
         w = wavelet(freqs, sample_rate)
         result = darray.map_blocks(convolve, w=w, dtype=darray.dtype)
 
-        return(result)
+        return result
