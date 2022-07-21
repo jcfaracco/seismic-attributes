@@ -282,7 +282,12 @@ def extract_patches(in_data, kernel, use_cuda=False):
 
     strides = in_data.strides + in_data.strides
     if is_cupy_enabled(use_cuda):
-        shape = (cp.array(in_data.shape) - cp.array(kernel)) + 1
+        # This is a workaround for cases where dask chunks are empty
+        # Numpy handles if quietly, CuPy does not.
+        if in_data.shape == (0, 0, 0):
+            return []
+
+        shape = (np.array(in_data.shape) - np.array(kernel)) + 1
         shape = tuple(list(shape) + list(kernel))
 
         patches = cp.lib.stride_tricks.as_strided(in_data,
@@ -298,7 +303,7 @@ def extract_patches(in_data, kernel, use_cuda=False):
     return patches
 
 
-def local_events(in_data, comparator):
+def local_events(in_data, comparator, use_cuda=False):
     """
     Description
     -----------
@@ -314,12 +319,20 @@ def local_events(in_data, comparator):
     out : Numpy Array
     """
 
-    idx = np.arange(0, in_data.shape[-1])
-    trace = in_data.take(idx, axis=-1, mode='clip')
-    plus = in_data.take(idx + 1, axis=-1, mode='clip')
-    minus = in_data.take(idx - 1, axis=-1, mode='clip')
+    if is_cupy_enabled(use_cuda):
+        idx = cp.arange(0, in_data.shape[-1])
+        trace = in_data.take(idx, axis=-1)
+        plus = in_data.take(idx + 1, axis=-1)
+        minus = in_data.take(idx - 1, axis=-1)
 
-    result = np.ones(in_data.shape, dtype=bool)
+        result = cp.ones(in_data.shape, dtype=bool)
+    else:
+        idx = np.arange(0, in_data.shape[-1])
+        trace = in_data.take(idx, axis=-1, mode='clip')
+        plus = in_data.take(idx + 1, axis=-1, mode='clip')
+        minus = in_data.take(idx - 1, axis=-1, mode='clip')
+
+        result = np.ones(in_data.shape, dtype=bool)
 
     result &= comparator(trace, plus)
     result &= comparator(trace, minus)

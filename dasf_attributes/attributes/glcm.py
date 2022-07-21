@@ -131,7 +131,7 @@ class GLCMAttributes(BaseAttributes):
             new_atts = list()
             for k in range(d):
                 image = gl[k, :, :, cp.newaxis]
-                g = glcm_gpu(image, bin_from=256, bin_to=levels_block)
+                g = glcm_gpu(image, bin_from=256, bin_to=levels_block, verbose=False)
                 new_atts.append(cp.pad(cp.asarray(g[...,
                                        glcm_type_block].squeeze(axis=2)), 3,
                                        pad_with, padder=0))

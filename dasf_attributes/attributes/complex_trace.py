@@ -487,7 +487,7 @@ class ComplexAttributes(BaseAttributes):
         def operation(chunk1, chunk2, chunk3):
             if util.is_cupy_enabled(self._use_cuda):
                 out = cp.zeros(chunk1.shape)
-                for i, j in cp.ndindex(out.shape[:-1]):
+                for i, j in np.ndindex(out.shape[:-1]):
                     ints = cp.unique(chunk3[i, j, :])
                     for ii in ints:
                         idx = cp.where(chunk3[i, j, :] == ii)[0]
@@ -508,6 +508,7 @@ class ComplexAttributes(BaseAttributes):
         env = self.envelope(darray)
         phase = self.instantaneous_phase(darray)
         troughs = env.map_blocks(util.local_events, comparator=np.less,
+                                 use_cuda=util.is_cupy_enabled(self._use_cuda),
                                  dtype=darray.dtype)
         troughs = troughs.cumsum(axis=-1)
         result = da.map_blocks(operation, env, phase, troughs,
@@ -543,7 +544,7 @@ class ComplexAttributes(BaseAttributes):
         def operation(chunk1, chunk2, chunk3):
             if util.is_cupy_enabled(self._use_cuda):
                 out = cp.zeros(chunk1.shape)
-                for i, j in cp.ndindex(out.shape[:-1]):
+                for i, j in np.ndindex(out.shape[:-1]):
                     ints = cp.unique(chunk3[i, j, :])
                     for ii in ints:
                         idx = cp.where(chunk3[i, j, :] == ii)[0]
@@ -564,6 +565,7 @@ class ComplexAttributes(BaseAttributes):
         env = self.envelope(darray)
         inst_freq = self.instantaneous_frequency(darray, sample_rate)
         troughs = env.map_blocks(util.local_events, comparator=np.less,
+                                 use_cuda=util.is_cupy_enabled(self._use_cuda),
                                  dtype=darray.dtype)
         troughs = troughs.cumsum(axis=-1)
         result = da.map_blocks(operation, env, inst_freq, troughs,
@@ -598,7 +600,7 @@ class ComplexAttributes(BaseAttributes):
         def operation(chunk1, chunk2, chunk3):
             if util.is_cupy_enabled(self._use_cuda):
                 out = cp.zeros(chunk1.shape)
-                for i, j in cp.ndindex(out.shape[:-1]):
+                for i, j in np.ndindex(out.shape[:-1]):
                     ints = cp.unique(chunk3[i, j, :])
 
                     for ii in ints:
@@ -620,6 +622,7 @@ class ComplexAttributes(BaseAttributes):
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
         troughs = env.map_blocks(util.local_events, comparator=np.less,
+                                 use_cuda=util.is_cupy_enabled(self._use_cuda),
                                  dtype=darray.dtype)
         troughs = troughs.cumsum(axis=-1)
 
@@ -653,10 +656,9 @@ class ComplexAttributes(BaseAttributes):
         result : Dask Array
         """
         def operation(chunk1, chunk2, chunk3):
-            print("oper", chunk1.shape, chunk2.shape, chunk3.shape)
             if util.is_cupy_enabled(self._use_cuda):
                 out = cp.zeros(chunk1.shape)
-                for i, j in cp.ndindex(out.shape[:-1]):
+                for i, j in np.ndindex(out.shape[:-1]):
                     ints = cp.unique(chunk3[i, j, :])
 
                     for ii in ints:
@@ -680,12 +682,14 @@ class ComplexAttributes(BaseAttributes):
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
         troughs = env.map_blocks(util.local_events, comparator=np.less,
+                                 use_cuda=util.is_cupy_enabled(self._use_cuda),
                                  dtype=darray.dtype)
-        troughs = troughs.cumsum(axis=-1)
-
-        darray = darray.rechunk(env.chunks)
-        result = da.map_blocks(operation, env, darray, troughs,
-                               dtype=darray.dtype)
-        result[da.isnan(result)] = 0
+#        troughs = troughs.cumsum(axis=-1)
+#
+#        darray = darray.rechunk(env.chunks)
+#        result = da.map_blocks(operation, env, darray, troughs,
+#                               dtype=darray.dtype)
+#        result[da.isnan(result)] = 0
+        result = troughs
 
         return result

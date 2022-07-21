@@ -74,7 +74,8 @@ class EdgeDetection(BaseAttributes):
             else:
                 np.seterr(all='ignore')
 
-            x = util.extract_patches(chunk, kernel)
+            x = util.extract_patches(chunk, kernel,
+                    util.is_cupy_enabled(self._use_cuda))
 
             if util.is_cupy_enabled(self._use_cuda):
                 s1 = cp.sum(x, axis=(-3, -2)) ** 2
@@ -232,26 +233,47 @@ class EdgeDetection(BaseAttributes):
         # Function to compute the COV
         def cov(x, ki, kj, kk):
             x = x.reshape((ki * kj, kk))
-            x = np.hstack([x.real, x.imag])
+            if util.is_cupy_enabled(self._use_cuda):
+                x = cp.hstack([x.real, x.imag])
+            else:
+                x = np.hstack([x.real, x.imag])
             return x.dot(x.T)
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
-            np.seterr(all='ignore')
-            ki, kj, kk = kernel
-            patches = util.extract_patches(chunk, kernel)
+            if util.is_cupy_enabled(self._use_cuda):
+                ki, kj, kk = kernel
+                patches = util.extract_patches(chunk, kernel,
+                        util.is_cupy_enabled())
 
-            out_data = []
-            for i in range(0, patches.shape[0]):
-                traces = patches[i]
-                traces = traces.reshape(-1, ki * kj * kk)
-                cova = np.apply_along_axis(cov, 1, traces, ki, kj, kk)
-                vals = np.linalg.eigvals(cova)
-                vals = np.abs(vals.max(axis=1) / vals.sum(axis=1))
+                out_data = []
+                for i in range(0, patches.shape[0]):
+                    traces = patches[i]
+                    traces = traces.reshape(-1, ki * kj * kk)
+                    cova = cp.apply_along_axis(cov, 1, traces, ki, kj, kk)
+                    vals = cp.linalg.eigvals(cova)
+                    vals = cp.abs(vals.max(axis=1) / vals.sum(axis=1))
 
-                out_data.append(vals)
+                    out_data.append(vals)
 
-            out_data = np.asarray(out_data).reshape(patches.shape[:3])
+                out_data = cp.asarray(out_data).reshape(patches.shape[:3])
+            else:
+                np.seterr(all='ignore')
+                ki, kj, kk = kernel
+                patches = util.extract_patches(chunk, kernel,
+                        util.is_cupy_enabled())
+
+                out_data = []
+                for i in range(0, patches.shape[0]):
+                    traces = patches[i]
+                    traces = traces.reshape(-1, ki * kj * kk)
+                    cova = np.apply_along_axis(cov, 1, traces, ki, kj, kk)
+                    vals = np.linalg.eigvals(cova)
+                    vals = np.abs(vals.max(axis=1) / vals.sum(axis=1))
+
+                    out_data.append(vals)
+
+                out_data = np.asarray(out_data).reshape(patches.shape[:3])
 
             return out_data
 
@@ -293,18 +315,31 @@ class EdgeDetection(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(gi2, gj2, gk2, gigj, gigk, gjgk):
-            np.seterr(all='ignore')
+            if util.is_cupy_enabled(self._use_cuda):
+                chunk_shape = gi2.shape
 
-            chunk_shape = gi2.shape
+                gst = cp.array([[gi2, gigj, gigk],
+                                [gigj, gj2, gjgk],
+                                [gigk, gjgk, gk2]])
 
-            gst = np.array([[gi2, gigj, gigk],
-                            [gigj, gj2, gjgk],
-                            [gigk, gjgk, gk2]])
+                gst = cp.moveaxis(gst, [0, 1], [-2, -1])
+                gst = gst.reshape((-1, 3, 3))
 
-            gst = np.moveaxis(gst, [0, 1], [-2, -1])
-            gst = gst.reshape((-1, 3, 3))
+                eigs = cp.sort(cp.linalg.eigvalsh(gst))
+            else:
+                np.seterr(all='ignore')
 
-            eigs = np.sort(np.linalg.eigvalsh(gst))
+                chunk_shape = gi2.shape
+
+                gst = np.array([[gi2, gigj, gigk],
+                                [gigj, gj2, gjgk],
+                                [gigk, gjgk, gk2]])
+
+                gst = np.moveaxis(gst, [0, 1], [-2, -1])
+                gst = gst.reshape((-1, 3, 3))
+
+                eigs = np.sort(np.linalg.eigvalsh(gst))
+
             e1 = eigs[:, 2].reshape(chunk_shape)
             e2 = eigs[:, 1].reshape(chunk_shape)
             e3 = eigs[:, 0].reshape(chunk_shape)
@@ -391,7 +426,8 @@ class EdgeDetection(BaseAttributes):
                                                               Curvature}
         """
 
-        np.seterr(all='ignore')
+        if not util.is_cupy_enabled(self._use_cuda):
+            np.seterr(all='ignore')
 
         # Generate Dask Array as necessary
         darray_il, chunks_init = self.create_array(darray_il, kernel,

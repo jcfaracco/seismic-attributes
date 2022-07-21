@@ -215,8 +215,6 @@ class DipAzm(BaseAttributes):
             shape = gi2.shape
 
             if util.is_cupy_enabled(self._use_cuda):
-                cp.seterr(all='ignore')
-
                 gst = cp.array([[gi2, gigj, gigk],
                                [gigj, gj2, gjgk],
                                [gigk, gjgk, gk2]])
@@ -293,8 +291,6 @@ class DipAzm(BaseAttributes):
             shape = gi2.shape
 
             if util.is_cupy_enabled(self._use_cuda):
-                cp.seterr(all='ignore')
-
                 gst = cp.array([[gi2, gigj, gigk],
                                [gigj, gj2, gjgk],
                                [gigk, gjgk, gk2]])
@@ -387,8 +383,6 @@ class DipAzm(BaseAttributes):
             shape = gi2.shape
 
             if util.is_cupy_enabled(self._use_cuda):
-                cp.seterr(all='ignore')
-
                 gst = cp.array([[gi2, gigj, gigk],
                                [gigj, gj2, gjgk],
                                [gigk, gjgk, gk2]])

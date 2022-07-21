@@ -37,7 +37,7 @@ class BaseAttributes:
         """
         self._use_cuda = use_cuda
 
-        if util.is_cupy_enabled(self._use_cuda):
+        if not util.is_cupy_enabled(self._use_cuda) and self._use_cuda:
             print("Warning: skipping CUDA usage. Check if this system "
                   "supports CUDA or if it installed", file=sys.stderr)
 

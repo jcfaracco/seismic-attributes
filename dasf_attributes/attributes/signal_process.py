@@ -212,7 +212,8 @@ class SignalProcess(BaseAttributes):
         darray, chunks_init = self.create_array(darray, preview=preview)
         if util.is_cupy_enabled(self._use_cuda):
             hist, bins = da.histogram(darray,
-                                      bins=cp.linspace(da_min, da_max, 256,
+                                      bins=cp.linspace(da_min,
+                                                       da_max, 256,
                                                        dtype=darray.dtype))
         else:
             hist, bins = da.histogram(darray,
@@ -316,10 +317,11 @@ class SignalProcess(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
-            x = util.extract_patches(chunk, kernel)
             if util.is_cupy_enabled(self._use_cuda):
+                x = util.extract_patches(chunk, kernel, True)
                 out = cp.sqrt(cp.mean(x ** 2, axis=(-3, -2, -1)))
             else:
+                x = util.extract_patches(chunk, kernel, False)
                 out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
 
             return out
@@ -435,10 +437,11 @@ class SignalProcess(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
-            x = util.extract_patches(chunk, (1, 1, kernel[-1]))
             if util.is_cupy_enabled(self._use_cuda):
+                x = util.extract_patches(chunk, (1, 1, kernel[-1]), True)
                 out = cp.trapz(x).reshape(x.shape[:3])
             else:
+                x = util.extract_patches(chunk, (1, 1, kernel[-1]), False)
                 out = np.trapz(x).reshape(x.shape[:3])
 
             return out

@@ -228,7 +228,7 @@ class Frequency(BaseAttributes):
             if util.is_cupy_enabled(self._use_cuda):
                 out = cp.zeros(chunk.shape)
 
-                for i, j in cp.ndindex(chunk.shape[:-1]):
+                for i, j in np.ndindex(chunk.shape[:-1]):
                     out[i, j] = cusignal.fftconvolve(chunk[i, j], w,
                                                      mode='same')
             else:
