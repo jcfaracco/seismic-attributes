@@ -10,5 +10,10 @@
 |           RMS              |                 |    Ready   |    X    |    X    |       X       |       X       |
 |        Trace AGC           |                 |    Ready   |    X    |    X    |       X       |       X       |
 |    Gradient Magnitude      |                 |    Ready   |    X    |    X    |       X       |       X       |
-|   Reflection Intensity     |                 |    Ready   |    X    |    X    |       X       |       X       |
+|   Reflection Intensity     |                 |  Unstable  |    X    |         |       X       |               |
 |     Phase Rotation         |                 |    Ready   |    X    |    X    |       X       |       X       |
+
+
+##### Observations:
+
+*Reflection Intensity* attribute requires `trapz()` function. It is only available in CuPy release 11.0.0.
