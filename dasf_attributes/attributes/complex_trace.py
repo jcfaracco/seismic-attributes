@@ -684,12 +684,11 @@ class ComplexAttributes(BaseAttributes):
         troughs = env.map_blocks(util.local_events, comparator=np.less,
                                  use_cuda=util.is_cupy_enabled(self._use_cuda),
                                  dtype=darray.dtype)
-#        troughs = troughs.cumsum(axis=-1)
-#
-#        darray = darray.rechunk(env.chunks)
-#        result = da.map_blocks(operation, env, darray, troughs,
-#                               dtype=darray.dtype)
-#        result[da.isnan(result)] = 0
-        result = troughs
+        troughs = troughs.cumsum(axis=-1)
+
+        darray = darray.rechunk(env.chunks)
+        result = da.map_blocks(operation, env, darray, troughs,
+                               dtype=darray.dtype)
+        result[da.isnan(result)] = 0
 
         return result
