@@ -5,6 +5,11 @@ import numpy as np
 
 import dask.array as da
 
+try:
+    import cupy as cp
+except Exception:
+    pass
+
 from unittest import TestCase
 
 from dasf_attributes.attributes import util, DipAzm
@@ -108,8 +113,8 @@ class TestGradientDips(TestCase):
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
-        self.assertEqual(out0.dtype, out_data_comp.dtype)
-        self.assertEqual(out1.dtype, out_data_comp.dtype)
+        self.assertEqual(out0.dtype, out_data.dtype)
+        self.assertEqual(out1.dtype, out_data.dtype)
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -246,8 +251,8 @@ class TestGST2DDips(TestCase):
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
-        self.assertEqual(out0.dtype, out_data_comp.dtype)
-        self.assertEqual(out1.dtype, out_data_comp.dtype)
+        self.assertEqual(out0.dtype, out_data.dtype)
+        self.assertEqual(out1.dtype, out_data.dtype)
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -409,7 +414,7 @@ class TestGradientStructureTensor(TestCase):
         out_data_np = dip_azm_np.gradient_structure_tensor(in_data_np, kernel=tensor_kernel)
 
         try:
-            for i in range(len(out_data)):
+            for i in range(len(out_data_np)):
                 out_cp = out_data_cp[i].compute()
                 out_np = out_data_np[i].compute()
                 np.testing.assert_array_almost_equal(out0_cp, out0_np)

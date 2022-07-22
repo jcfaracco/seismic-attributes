@@ -5,6 +5,11 @@ import numpy as np
 
 import dask.array as da
 
+try:
+    import cupy as cp
+except Exception:
+    pass
+
 from unittest import TestCase
 
 from dasf_attributes.attributes import util, DipAzm, EdgeDetection
@@ -141,11 +146,11 @@ class TestVolumeCurvature(TestCase):
 
         out_dip_cp = dip_azm_cp.gradient_dips(in_data_cp, kernel=tensor_kernel)
         out_dip_np = dip_azm_np.gradient_dips(in_data_np, kernel=tensor_kernel)
-        out_data_cp = edge.volume_curvature(darray_il=out_dip_cp[0], darray_xl=out_dip_cp[1])
-        out_data_np = edge.volume_curvature(darray_il=out_dip_np[0], darray_xl=out_dip_np[1])
+        out_data_cp = edge_cp.volume_curvature(darray_il=out_dip_cp[0], darray_xl=out_dip_cp[1])
+        out_data_np = edge_np.volume_curvature(darray_il=out_dip_np[0], darray_xl=out_dip_np[1])
 
         try:
-            for i in range(len(out_data)):
+            for i in range(len(out_data_np)):
                 out_cp = out_data_cp[i].compute()
                 out_np = out_data_np[i].compute()
                 np.testing.assert_array_almost_equal(out0_cp, out0_np)
