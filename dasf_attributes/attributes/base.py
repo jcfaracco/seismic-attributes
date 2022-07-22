@@ -83,14 +83,13 @@ class BaseAttributes:
                                                  kernel=kernel,
                                                  preview=preview)
             darray = da.from_array(darray, chunks=chunk_size)
-            chunks_init = darray.chunks
-        else:
-            chunks_init = darray.chunks
 
         # Ghost Dask Array if operation specifies a kernel
         if kernel is not None:
             if hw is None:
                 hw = tuple(np.array(kernel) // 2)
             darray = da.overlap.overlap(darray, depth=hw, boundary=boundary)
+
+        chunks_init = darray.chunks
 
         return (darray, chunks_init)
