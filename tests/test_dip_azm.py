@@ -417,12 +417,11 @@ class TestGradientStructureTensor(TestCase):
             for i in range(len(out_data_np)):
                 out_cp = out_data_cp[i].compute()
                 out_np = out_data_np[i].compute()
-                np.testing.assert_array_almost_equal(out0_cp, out0_np)
-                np.testing.assert_array_almost_equal(out1_cp, out1_np)
+                np.testing.assert_array_almost_equal(out_cp, out_np)
         except AssertionError as ae:
             total = diff = 0
             # Check if the percentage of mismatch is higher than 5.0 %
-            for i in range(len(out_data)):
+            for i in range(len(out_data_np)):
                 out_cp = out_data_cp[i].compute()
                 out_np = out_data_np[i].compute()
                 unequal_pos = np.where(out_cp != out_np)
