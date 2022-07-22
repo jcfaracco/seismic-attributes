@@ -39,10 +39,10 @@ def parameterize_all_methods_attributes():
     classes = ["attributes." + name for name, obj in inspect.getmembers(attributes) if inspect.isclass(obj)]
 
     block_shape_list = [
-        "gradient_dips",
-        "gradient_structure_tensor",
-        "gst_2D_dips",
-        "volume_curvature",
+        "gradient_dips",              # Implemented by test_dip_azm
+        "gradient_structure_tensor",  # Implemented by test_dip_azm
+        "gst_2D_dips",                # Implemented by test_dip_azm
+        "volume_curvature",           # Implemented by test_edge_detection
         "trace_agc",
         "bandpass_filter",
         "cwt_ormsby",
