@@ -27,7 +27,7 @@ class TestBandpassFilter(TestCase):
         freq_hp = 0.7
         freq = Frequency(use_cuda=util.is_cupy_enabled())
 
-        in_shape = (40, 40, 40)
+        in_shape = (100, 100, 100)
 
         if util.is_cupy_enabled():
             rng = cp.random.default_rng(seed=42)
@@ -47,8 +47,8 @@ class TestBandpassFilter(TestCase):
         freq_hp = 0.7
         freq = Frequency(use_cuda=util.is_cupy_enabled())
 
-        in_shape = (40, 40, 40)
-        in_shape_chunks = (40, 5, 5)
+        in_shape = (100, 100, 100)
+        in_shape_chunks = (50, 50, 50)
 
         if util.is_cupy_enabled():
             rng = cp.random.default_rng(seed=42)
@@ -71,8 +71,8 @@ class TestBandpassFilter(TestCase):
         freq_hp = 0.7
         freq = Frequency(use_cuda=False)
 
-        in_shape = (40, 40, 40)
-        in_shape_chunks = (40, 5, 5)
+        in_shape = (100, 100, 100)
+        in_shape_chunks = (50, 50, 50)
 
         rng = np.random.default_rng(seed=42)
         in_data = rng.random(in_shape)
@@ -93,8 +93,8 @@ class TestBandpassFilter(TestCase):
         freq_hp = 0.7
         freq = Frequency(use_cuda=True)
 
-        in_shape = (40, 40, 40)
-        in_shape_chunks = (40, 5, 5)
+        in_shape = (100, 100, 100)
+        in_shape_chunks = (50, 50, 50)
 
         rng = cp.random.default_rng(seed=42)
         in_data = rng.random(in_shape)
@@ -116,8 +116,8 @@ class TestBandpassFilter(TestCase):
         freq_cp = Frequency(use_cuda=True)
         freq_np = Frequency(use_cuda=False)
 
-        in_shape = (40, 40, 40)
-        in_shape_chunks = (40, 5, 5)
+        in_shape = (100, 100, 100)
+        in_shape_chunks = (50, 50, 50)
 
         rng = cp.random.default_rng(seed=42)
         in_data_cp = rng.random(in_shape)
