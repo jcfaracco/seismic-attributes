@@ -43,7 +43,6 @@ def parameterize_all_methods_attributes():
         "gradient_structure_tensor",  # Implemented by test_dip_azm
         "gst_2D_dips",                # Implemented by test_dip_azm
         "volume_curvature",           # Implemented by test_edge_detection
-        "trace_agc",
         "bandpass_filter",
         "cwt_ormsby",
         "cwt_ricker",

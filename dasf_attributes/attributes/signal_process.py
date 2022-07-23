@@ -320,17 +320,32 @@ class SignalProcess(BaseAttributes):
             if util.is_cupy_enabled(self._use_cuda):
                 x = util.extract_patches(chunk, kernel, True)
                 out = cp.sqrt(cp.mean(x ** 2, axis=(-3, -2, -1)))
+
+                shape = (np.array(chunk.shape) - np.array(out.shape)) // 2
+                pad = ((shape[0], shape[0]),
+                       (shape[1], shape[1]),
+                       (shape[2], shape[2]))
+
+                out = cp.pad(out, pad, mode='constant', constant_values=0)
             else:
                 x = util.extract_patches(chunk, kernel, False)
                 out = np.sqrt(np.mean(x ** 2, axis=(-3, -2, -1)))
+
+                shape = (np.array(chunk.shape) - np.array(out.shape)) // 2
+                pad = ((shape[0], shape[0]),
+                       (shape[1], shape[1]),
+                       (shape[2], shape[2]))
+
+                out = np.pad(out, pad, mode='constant', constant_values=0)
 
             return out
 
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
         result = darray.map_blocks(operation, kernel=kernel,
-                                   dtype=darray.dtype,
-                                   chunks=darray.chunks)
+                                   dtype=darray.dtype)
+
+        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
         return result
@@ -364,10 +379,8 @@ class SignalProcess(BaseAttributes):
         rms = self.rms(darray, kernel)
         rms_max = rms.max()
 
-        darray = util.trim_dask_array(darray, kernel)
-        rms = util.trim_dask_array(rms, kernel)
-
         result = darray * (1.5 - (rms / rms_max))
+        result = util.trim_dask_array(result, kernel)
         result[da.isnan(result)] = 0
 
         return result
