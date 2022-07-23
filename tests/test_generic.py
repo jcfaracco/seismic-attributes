@@ -1,6 +1,5 @@
 """Test Basic functions"""
 
-import pytest
 import inspect
 import unittest
 import numpy as np
@@ -11,9 +10,9 @@ try:
     import cupy as cp
 except Exception:
     pass
-    
+
 from unittest import TestCase
-from parameterized import parameterized, parameterized_class
+from parameterized import parameterized_class
 
 from dasf_attributes import attributes
 from dasf_attributes.attributes import util
@@ -24,7 +23,8 @@ class TestNewModules(TestCase):
     Test new implemented modules without properly imports
     """
     def test_modules_match(self):
-        defined_cls = [name for name, obj in inspect.getmembers(attributes) if inspect.isclass(obj)]
+        defined_cls = [name for name, obj in inspect.getmembers(attributes)
+                       if inspect.isclass(obj)]
 
         all_cls = attributes.__all__
 
@@ -36,35 +36,41 @@ class TestNewModules(TestCase):
 
 
 def parameterize_all_methods_attributes():
-    classes = ["attributes." + name for name, obj in inspect.getmembers(attributes) if inspect.isclass(obj)]
+    classes = ["attributes." + name
+               for name, obj in inspect.getmembers(attributes)
+               if inspect.isclass(obj)]
 
     block_shape_list = [
         "gradient_dips",              # Implemented by test_dip_azm
         "gradient_structure_tensor",  # Implemented by test_dip_azm
         "gst_2D_dips",                # Implemented by test_dip_azm
         "volume_curvature",           # Implemented by test_edge_detection
-        "bandpass_filter",
-        "cwt_ormsby",
-        "cwt_ricker",
-        "highpass_filter",
-        "lowpass_filter",
-        "phase_rotation",
-        "rescale_amplitude_range"
+        "bandpass_filter",            # Implemented by test_frequency
+        "highpass_filter",            # Implemented by test_frequency
+        "lowpass_filter",             # Implemented by test_frequency
+        "cwt_ormsby",                 # Implemented by test_frequency
+        "cwt_ricker",                 # Implemented by test_frequency
+        "phase_rotation",             # Implemented by test_signal_process
+        "rescale_amplitude_range"     # Implemented by test_signal_process
         ]
-    
+
     functions = []
     for cls in classes:
         obj_default = eval(cls)()
         obj_np = eval(cls)(use_cuda=False)
         obj_cp = eval(cls)(use_cuda=True)
 
-        funcs = [func for func in dir(obj_default) if callable(getattr(obj_default, func)) and \
-                                                      not func.startswith("_") and \
-                                                      func != "create_array" and \
-                                                      func != "set_cuda"]
+        funcs = [func for func in dir(obj_default)
+                 if (callable(getattr(obj_default, func)) and
+                     not func.startswith("_") and
+                     func != "create_array" and
+                     func != "set_cuda")]
         for func in funcs:
             if func not in block_shape_list:
-                functions.append({"obj_default": obj_default, "obj_np": obj_np, "obj_cp": obj_cp, "func": func})
+                functions.append({"obj_default": obj_default,
+                                  "obj_np": obj_np,
+                                  "obj_cp": obj_cp,
+                                  "func": func})
 
     return functions
 
@@ -202,14 +208,16 @@ class TestShapeAttributes(TestCase):
 
 
 def parameterize_class_attributes():
-    return [{"obj": eval("attributes." + name)()} for name, obj in inspect.getmembers(attributes) if inspect.isclass(obj)]
+    return [{"obj": eval("attributes." + name)()}
+            for name, obj in inspect.getmembers(attributes)
+            if inspect.isclass(obj)]
 
 
 @parameterized_class(parameterize_class_attributes())
 class TestInheritanceBaseClass(TestCase):
     def test_inheritance(self):
         self.assertEqual(len(type(self.obj).__bases__), 1)
-        
+
         base = type(self.obj).__bases__[0]
-        
+
         self.assertEqual(base.__name__, 'BaseAttributes')

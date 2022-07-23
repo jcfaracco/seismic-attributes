@@ -37,10 +37,11 @@ class TestVolumeCurvature(TestCase):
             in_data = rng.random(in_shape)
 
         out_dip = dip_azm.gradient_dips(in_data, kernel=tensor_kernel)
-        out_data = edge.volume_curvature(darray_il=out_dip[0], darray_xl=out_dip[1])
-        
+        out_data = edge.volume_curvature(darray_il=out_dip[0],
+                                         darray_xl=out_dip[1])
+
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -65,10 +66,11 @@ class TestVolumeCurvature(TestCase):
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
         out_dip = dip_azm.gradient_dips(in_data, kernel=tensor_kernel)
-        out_data = edge.volume_curvature(darray_il=out_dip[0], darray_xl=out_dip[1])
+        out_data = edge.volume_curvature(darray_il=out_dip[0],
+                                         darray_xl=out_dip[1])
 
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -89,10 +91,11 @@ class TestVolumeCurvature(TestCase):
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
         out_dip = dip_azm.gradient_dips(in_data, kernel=tensor_kernel)
-        out_data = edge.volume_curvature(darray_il=out_dip[0], darray_xl=out_dip[1])
+        out_data = edge.volume_curvature(darray_il=out_dip[0],
+                                         darray_xl=out_dip[1])
 
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -115,10 +118,11 @@ class TestVolumeCurvature(TestCase):
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
         out_dip = dip_azm.gradient_dips(in_data, kernel=tensor_kernel)
-        out_data = edge.volume_curvature(darray_il=out_dip[0], darray_xl=out_dip[1])
+        out_data = edge.volume_curvature(darray_il=out_dip[0],
+                                         darray_xl=out_dip[1])
 
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -146,8 +150,10 @@ class TestVolumeCurvature(TestCase):
 
         out_dip_cp = dip_azm_cp.gradient_dips(in_data_cp, kernel=tensor_kernel)
         out_dip_np = dip_azm_np.gradient_dips(in_data_np, kernel=tensor_kernel)
-        out_data_cp = edge_cp.volume_curvature(darray_il=out_dip_cp[0], darray_xl=out_dip_cp[1])
-        out_data_np = edge_np.volume_curvature(darray_il=out_dip_np[0], darray_xl=out_dip_np[1])
+        out_data_cp = edge_cp.volume_curvature(darray_il=out_dip_cp[0],
+                                               darray_xl=out_dip_cp[1])
+        out_data_np = edge_np.volume_curvature(darray_il=out_dip_np[0],
+                                               darray_xl=out_dip_np[1])
 
         try:
             for i in range(len(out_data_np)):

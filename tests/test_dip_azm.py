@@ -35,9 +35,9 @@ class TestGradientDips(TestCase):
             in_data = rng.random(in_shape)
 
         out_data = dip_azm.gradient_dips(in_data)
-        
+
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -63,7 +63,7 @@ class TestGradientDips(TestCase):
         out_data = dip_azm.gradient_dips(in_data)
 
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -85,7 +85,7 @@ class TestGradientDips(TestCase):
         out_data = dip_azm.gradient_dips(in_data)
 
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -109,7 +109,7 @@ class TestGradientDips(TestCase):
         out_data = dip_azm.gradient_dips(in_data)
 
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -173,9 +173,9 @@ class TestGST2DDips(TestCase):
             in_data = rng.random(in_shape)
 
         out_data = dip_azm.gst_2D_dips(in_data)
-        
+
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -201,7 +201,7 @@ class TestGST2DDips(TestCase):
         out_data = dip_azm.gst_2D_dips(in_data)
 
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -223,7 +223,7 @@ class TestGST2DDips(TestCase):
         out_data = dip_azm.gst_2D_dips(in_data)
 
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -247,7 +247,7 @@ class TestGST2DDips(TestCase):
         out_data = dip_azm.gst_2D_dips(in_data)
 
         self.assertEqual(len(out_data), 2)
-        
+
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
@@ -311,10 +311,11 @@ class TestGradientStructureTensor(TestCase):
             rng = np.random.default_rng(seed=42)
             in_data = rng.random(in_shape)
 
-        out_data = dip_azm.gradient_structure_tensor(in_data, kernel=tensor_kernel)
-        
+        out_data = dip_azm.gradient_structure_tensor(in_data,
+                                                     kernel=tensor_kernel)
+
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -337,10 +338,11 @@ class TestGradientStructureTensor(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = dip_azm.gradient_structure_tensor(in_data, kernel=tensor_kernel)
+        out_data = dip_azm.gradient_structure_tensor(in_data,
+                                                     kernel=tensor_kernel)
 
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -359,10 +361,11 @@ class TestGradientStructureTensor(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = dip_azm.gradient_structure_tensor(in_data, kernel=tensor_kernel)
+        out_data = dip_azm.gradient_structure_tensor(in_data,
+                                                     kernel=tensor_kernel)
 
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -383,10 +386,11 @@ class TestGradientStructureTensor(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = dip_azm.gradient_structure_tensor(in_data, kernel=tensor_kernel)
+        out_data = dip_azm.gradient_structure_tensor(in_data,
+                                                     kernel=tensor_kernel)
 
         self.assertEqual(len(out_data), 6)
-        
+
         for item in out_data:
             out = item.compute()
 
@@ -400,7 +404,7 @@ class TestGradientStructureTensor(TestCase):
 
         in_shape = (20, 20, 20)
         in_shape_chunks = (5, 5, 5)
-        tensor_kernel = (2, 2, 2)
+        kernel = (2, 2, 2)
 
         rng = cp.random.default_rng(seed=42)
         in_data_cp = rng.random(in_shape)
@@ -410,8 +414,10 @@ class TestGradientStructureTensor(TestCase):
         in_data_cp = da.from_array(in_data_cp, chunks=in_shape_chunks)
         in_data_np = da.from_array(in_data_np, chunks=in_shape_chunks)
 
-        out_data_cp = dip_azm_cp.gradient_structure_tensor(in_data_cp, kernel=tensor_kernel)
-        out_data_np = dip_azm_np.gradient_structure_tensor(in_data_np, kernel=tensor_kernel)
+        out_data_cp = dip_azm_cp.gradient_structure_tensor(in_data_cp,
+                                                           kernel=kernel)
+        out_data_np = dip_azm_np.gradient_structure_tensor(in_data_np,
+                                                           kernel=kernel)
 
         try:
             for i in range(len(out_data_np)):
