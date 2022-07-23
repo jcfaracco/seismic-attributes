@@ -86,7 +86,10 @@ class Frequency(BaseAttributes):
                                                 preview=preview)
         fs = 1000 / sample_rate
         nyq = fs * 0.5
-        B, A = signal.butter(6, freq/nyq, btype='lowpass', analog=False)
+        if util.is_cupy_enabled(self._use_cuda):
+            B, A = cusignal.butter(6, freq/nyq, btype='lowpass', analog=False)
+        else:
+            B, A = signal.butter(6, freq/nyq, btype='lowpass', analog=False)
         result = darray.map_blocks(filt, B, A, dtype=darray.dtype)
 
         return result
@@ -130,7 +133,10 @@ class Frequency(BaseAttributes):
                                                 preview=preview)
         fs = 1000 / sample_rate
         nyq = fs * 0.5
-        B, A = signal.butter(6, freq/nyq, btype='highpass', analog=False)
+        if util.is_cupy_enabled(self._use_cuda):
+            B, A = cusignal.butter(6, freq/nyq, btype='highpass', analog=False)
+        else:
+            B, A = signal.butter(6, freq/nyq, btype='highpass', analog=False)
         result = darray.map_blocks(filt, B, A, dtype=darray.dtype)
 
         return result
@@ -176,8 +182,12 @@ class Frequency(BaseAttributes):
                                                 preview=preview)
         fs = 1000 / sample_rate
         nyq = fs * 0.5
-        B, A = signal.butter(6, (freq_lp/nyq, freq_hp/nyq), btype='bandpass',
-                             analog=False)
+        if util.is_cupy_enabled(self._use_cuda):
+            B, A = cusignal.butter(6, (freq_lp/nyq, freq_hp/nyq), btype='bandpass',
+                                   analog=False)
+        else:
+            B, A = signal.butter(6, (freq_lp/nyq, freq_hp/nyq), btype='bandpass',
+                                 analog=False)
         result = darray.map_blocks(filt, B, A, dtype=darray.dtype)
 
         return result
