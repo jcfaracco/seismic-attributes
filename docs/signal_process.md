@@ -14,6 +14,6 @@
 |     Phase Rotation         |                 |    Ready   |    X    |    X    |       X       |       X       |
 
 
-##### Observations:
+#### Observations:
 
 *Reflection Intensity* attribute requires `trapz()` function. It is only available in CuPy release 11.0.0.

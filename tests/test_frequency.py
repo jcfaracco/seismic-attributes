@@ -36,9 +36,12 @@ class TestBandpassFilter(TestCase):
             rng = np.random.default_rng(seed=42)
             in_data = rng.random(in_shape)
 
-        out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Bandpass Filter is still in development")
 
         self.assertEqual(in_shape, out.shape)
 
@@ -60,9 +63,12 @@ class TestBandpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Bandpass Filter is still in development")
 
         self.assertEqual(in_shape, out.shape)
 
@@ -80,9 +86,12 @@ class TestBandpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Bandpass Filter is still in development")
 
         self.assertEqual(out_data.dtype, out.dtype)
 
@@ -102,9 +111,12 @@ class TestBandpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.bandpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Bandpass Filter is still in development")
 
         self.assertEqual(out.dtype, out_data.dtype)
 
@@ -133,7 +145,9 @@ class TestBandpassFilter(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
+        except NotImplementedError:
+            raise self.skipTest("Bandpass Filter is still in development")
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)
@@ -164,9 +178,12 @@ class TestHighpassFilter(TestCase):
             rng = np.random.default_rng(seed=42)
             in_data = rng.random(in_shape)
 
-        out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Highpass Filter is still in development")
 
         self.assertEqual(in_shape, out.shape)
 
@@ -188,9 +205,12 @@ class TestHighpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Highpass Filter is still in development")
 
         self.assertEqual(in_shape, out.shape)
 
@@ -208,9 +228,12 @@ class TestHighpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Highpass Filter is still in development")
 
         self.assertEqual(out_data.dtype, out.dtype)
 
@@ -230,9 +253,12 @@ class TestHighpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.highpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Highpass Filter is still in development")
 
         self.assertEqual(out.dtype, out_data.dtype)
 
@@ -261,7 +287,9 @@ class TestHighpassFilter(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
+        except NotImplementedError:
+            raise self.skipTest("Highpass Filter is still in development")
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)
@@ -292,9 +320,12 @@ class TestLowpassFilter(TestCase):
             rng = np.random.default_rng(seed=42)
             in_data = rng.random(in_shape)
 
-        out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Lowpass Filter is still in development")
 
         self.assertEqual(in_shape, out.shape)
 
@@ -316,9 +347,12 @@ class TestLowpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Lowpass Filter is still in development")
 
         self.assertEqual(in_shape, out.shape)
 
@@ -336,9 +370,12 @@ class TestLowpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Lowpass Filter is still in development")
 
         self.assertEqual(out_data.dtype, out.dtype)
 
@@ -358,9 +395,12 @@ class TestLowpassFilter(TestCase):
         # The input data is small, so we can import from array
         in_data = da.from_array(in_data, chunks=in_shape_chunks)
 
-        out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
+        try:
+            out_data = freq.lowpass_filter(in_data, freq_lp, freq_hp)
 
-        out = out_data.compute()
+            out = out_data.compute()
+        except NotImplementedError:
+            raise self.skipTest("Lowpass Filter is still in development")
 
         self.assertEqual(out.dtype, out_data.dtype)
 
@@ -389,7 +429,9 @@ class TestLowpassFilter(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
+        except NotImplementedError:
+            raise self.skipTest("Lowpass Filter is still in development")
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)
@@ -512,7 +554,7 @@ class TestCWTOrmsby(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)
@@ -635,7 +677,7 @@ class TestCWTRicker(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)

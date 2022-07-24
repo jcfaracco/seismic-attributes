@@ -113,8 +113,8 @@ class TestGradientDips(TestCase):
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
-        self.assertEqual(out0.dtype, out_data.dtype)
-        self.assertEqual(out1.dtype, out_data.dtype)
+        self.assertEqual(out_data[0].dtype, out0.dtype)
+        self.assertEqual(out_data[1].dtype, out1.dtype)
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -141,8 +141,8 @@ class TestGradientDips(TestCase):
             out1_cp = out_data_cp[1].compute()
             out0_np = out_data_np[0].compute()
             out1_np = out_data_np[1].compute()
-            np.testing.assert_array_almost_equal(out0_cp, out0_np)
-            np.testing.assert_array_almost_equal(out1_cp, out1_np)
+            np.testing.assert_array_almost_equal(out0_cp.get(), out0_np)
+            np.testing.assert_array_almost_equal(out1_cp.get(), out1_np)
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos0 = np.where(out0_cp != out0_np)
@@ -251,8 +251,8 @@ class TestGST2DDips(TestCase):
         out0 = out_data[0].compute()
         out1 = out_data[1].compute()
 
-        self.assertEqual(out0.dtype, out_data.dtype)
-        self.assertEqual(out1.dtype, out_data.dtype)
+        self.assertEqual(out_data[0].dtype, out0.dtype)
+        self.assertEqual(out_data[1].dtype, out1.dtype)
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -279,8 +279,8 @@ class TestGST2DDips(TestCase):
             out1_cp = out_data_cp[1].compute()
             out0_np = out_data_np[0].compute()
             out1_np = out_data_np[1].compute()
-            np.testing.assert_array_almost_equal(out0_cp, out0_np)
-            np.testing.assert_array_almost_equal(out1_cp, out1_np)
+            np.testing.assert_array_almost_equal(out0_cp.get(), out0_np)
+            np.testing.assert_array_almost_equal(out1_cp.get(), out1_np)
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos0 = np.where(out0_cp != out0_np)
@@ -423,7 +423,7 @@ class TestGradientStructureTensor(TestCase):
             for i in range(len(out_data_np)):
                 out_cp = out_data_cp[i].compute()
                 out_np = out_data_np[i].compute()
-                np.testing.assert_array_almost_equal(out_cp, out_np)
+                np.testing.assert_array_almost_equal(out_cp.get(), out_np)
         except AssertionError as ae:
             total = diff = 0
             # Check if the percentage of mismatch is higher than 5.0 %

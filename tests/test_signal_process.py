@@ -128,7 +128,7 @@ class TestPhaseRotation(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)
@@ -258,7 +258,7 @@ class TestRescaleAmplitudeRange(TestCase):
         try:
             out_cp = out_data_cp.compute()
             out_np = out_data_np.compute()
-            np.testing.assert_array_almost_equal(out_cp, out_np)
+            np.testing.assert_array_almost_equal(out_cp.get(), out_np)
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(out_cp != out_np)

@@ -72,10 +72,12 @@ class DipAzm(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel=None,
                                                 preview=preview)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         # Compute I, J, K gradients
-        gi = sp().first_derivative(darray, axis=0)
-        gj = sp().first_derivative(darray, axis=1)
-        gk = sp().first_derivative(darray, axis=2)
+        gi = sp(use_cuda).first_derivative(darray, axis=0)
+        gj = sp(use_cuda).first_derivative(darray, axis=1)
+        gk = sp(use_cuda).first_derivative(darray, axis=2)
 
         # Compute dips
         il_dip = -(gi / gk) * dip_factor
@@ -87,7 +89,7 @@ class DipAzm(BaseAttributes):
         # Perform smoothing as specified
         if kernel is not None:
             hw = tuple(np.array(kernel) // 2)
-            if util.is_cupy_enabled(self._use_cuda):
+            if use_cuda:
                 il_dip = il_dip.map_overlap(cundi.median_filter, depth=hw,
                                             boundary='reflect',
                                             dtype=darray.dtype, size=kernel)
@@ -132,17 +134,19 @@ class DipAzm(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         # Compute I, J, K gradients
-        gi = sp().first_derivative(darray, axis=0)
-        gj = sp().first_derivative(darray, axis=1)
-        gk = sp().first_derivative(darray, axis=2)
+        gi = sp(use_cuda).first_derivative(darray, axis=0)
+        gj = sp(use_cuda).first_derivative(darray, axis=1)
+        gk = sp(use_cuda).first_derivative(darray, axis=2)
         gi = util.trim_dask_array(gi, kernel)
         gj = util.trim_dask_array(gj, kernel)
         gk = util.trim_dask_array(gk, kernel)
 
         # Compute Inner Product of Gradients
         hw = tuple(np.array(kernel) // 2)
-        if util.is_cupy_enabled(self._use_cuda):
+        if use_cuda:
             gi2 = (gi * gi).map_overlap(cundi.uniform_filter, depth=hw,
                                         boundary='reflect',
                                         dtype=darray.dtype, size=kernel)
