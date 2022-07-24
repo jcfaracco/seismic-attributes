@@ -101,6 +101,8 @@ class TestVolumeCurvature(TestCase):
 
             self.assertEqual(item.dtype, out.dtype)
 
+            self.assertEqual(np.ndarray, type(out))
+
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
@@ -127,6 +129,8 @@ class TestVolumeCurvature(TestCase):
             out = item.compute()
 
             self.assertEqual(item.dtype, out.dtype)
+
+            self.assertEqual(cp.ndarray, type(out))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")

@@ -92,6 +92,9 @@ class TestGradientDips(TestCase):
         self.assertEqual(out_data[0].dtype, out0.dtype)
         self.assertEqual(out_data[1].dtype, out1.dtype)
 
+        self.assertEqual(np.ndarray, type(out0))
+        self.assertEqual(np.ndarray, type(out1))
+
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
@@ -115,6 +118,9 @@ class TestGradientDips(TestCase):
 
         self.assertEqual(out_data[0].dtype, out0.dtype)
         self.assertEqual(out_data[1].dtype, out1.dtype)
+
+        self.assertEqual(cp.ndarray, type(out0))
+        self.assertEqual(cp.ndarray, type(out1))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -230,6 +236,9 @@ class TestGST2DDips(TestCase):
         self.assertEqual(out_data[0].dtype, out0.dtype)
         self.assertEqual(out_data[1].dtype, out1.dtype)
 
+        self.assertEqual(np.ndarray, type(out0))
+        self.assertEqual(np.ndarray, type(out1))
+
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
@@ -253,6 +262,9 @@ class TestGST2DDips(TestCase):
 
         self.assertEqual(out_data[0].dtype, out0.dtype)
         self.assertEqual(out_data[1].dtype, out1.dtype)
+
+        self.assertEqual(cp.ndarray, type(out0))
+        self.assertEqual(cp.ndarray, type(out1))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -371,6 +383,9 @@ class TestGradientStructureTensor(TestCase):
 
             self.assertEqual(item.dtype, out.dtype)
 
+            self.assertEqual(np.ndarray, type(out))
+
+
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
@@ -395,6 +410,8 @@ class TestGradientStructureTensor(TestCase):
             out = item.compute()
 
             self.assertEqual(item.dtype, out.dtype)
+
+            self.assertEqual(cp.ndarray, type(out))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")

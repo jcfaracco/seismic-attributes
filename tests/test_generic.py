@@ -149,6 +149,8 @@ class TestShapeAttributes(TestCase):
 
         self.assertEqual(out_data.dtype, out_data_comp.dtype)
 
+        self.assertEqual(np.ndarray, type(out_data_comp))
+
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
@@ -170,6 +172,8 @@ class TestShapeAttributes(TestCase):
             return
 
         self.assertEqual(out_data.dtype, out_data_comp.dtype)
+
+        self.assertEqual(cp.ndarray, type(out_data_comp))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
