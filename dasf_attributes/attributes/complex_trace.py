@@ -227,8 +227,9 @@ class ComplexAttributes(BaseAttributes):
         """
 
         darray, chunks_init = self.create_array(darray, preview=preview)
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
         env = self.envelope(darray)
-        env_prime = sp(self._use_cuda).first_derivative(env, axis=-1)
+        env_prime = sp(use_cuda).first_derivative(env, axis=-1)
         result = env_prime / env
         result = da.clip(result, -1, 1)
 
@@ -259,7 +260,9 @@ class ComplexAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         rac = self.relative_amplitude_change(darray)
-        result = sp(self._use_cuda).first_derivative(rac, axis=-1)
+
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+        result = sp(use_cuda).first_derivative(rac, axis=-1)
 
         return result
 
@@ -289,14 +292,16 @@ class ComplexAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         fs = 1000 / sample_rate
         phase = self.instantaneous_phase(darray)
         phase = da.deg2rad(phase)
-        if util.is_cupy_enabled(self._use_cuda):
+        if use_cuda:
             phase = phase.map_blocks(cp.unwrap, dtype=darray.dtype)
         else:
             phase = phase.map_blocks(np.unwrap, dtype=darray.dtype)
-        phase_prime = sp(self._use_cuda).first_derivative(phase, axis=-1)
+        phase_prime = sp(use_cuda).first_derivative(phase, axis=-1)
         result = da.absolute((phase_prime / (2.0 * np.pi) * fs))
 
         return result
@@ -387,7 +392,10 @@ class ComplexAttributes(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         inst_freq = self.instantaneous_frequency(darray, sample_rate)
-        result = sp(self._use_cuda).first_derivative(inst_freq, axis=-1)
+
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
+        result = sp(use_cuda).first_derivative(inst_freq, axis=-1)
 
         return result
 
@@ -664,8 +672,8 @@ class ComplexAttributes(BaseAttributes):
                     for ii in ints:
                         idx = cp.where(chunk3[i, j, :] == ii)[0]
                         peak = idx[chunk1[i, j, idx].argmax()]
-                        out[i, j, idx] = chunk1[i, j, peak] * cp.sign(chunk2[i, j,
-                                                                             peak])
+                        out[i, j, idx] = chunk1[i, j, peak] * \
+                            cp.sign(chunk2[i, j, peak])
             else:
                 out = np.zeros(chunk1.shape)
                 for i, j in np.ndindex(out.shape[:-1]):
@@ -674,8 +682,8 @@ class ComplexAttributes(BaseAttributes):
                     for ii in ints:
                         idx = np.where(chunk3[i, j, :] == ii)[0]
                         peak = idx[chunk1[i, j, idx].argmax()]
-                        out[i, j, idx] = chunk1[i, j, peak] * np.sign(chunk2[i, j,
-                                                                             peak])
+                        out[i, j, idx] = chunk1[i, j, peak] * \
+                            np.sign(chunk2[i, j, peak])
 
             return out
 

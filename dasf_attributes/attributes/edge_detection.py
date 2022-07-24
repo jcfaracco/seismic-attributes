@@ -74,8 +74,9 @@ class EdgeDetection(BaseAttributes):
             else:
                 np.seterr(all='ignore')
 
-            x = util.extract_patches(chunk, kernel,
-                    util.is_cupy_enabled(self._use_cuda))
+            use_cuda = util.is_cupy_enabled(self._use_cuda)
+
+            x = util.extract_patches(chunk, kernel, use_cuda)
 
             if util.is_cupy_enabled(self._use_cuda):
                 s1 = cp.sum(x, axis=(-3, -2)) ** 2
@@ -165,13 +166,15 @@ class EdgeDetection(BaseAttributes):
         # Generate Dask Array as necessary
         darray, chunks_init = self.create_array(darray, kernel, preview)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         # Compute I, J, K gradients
-        gi = sp(self._use_cuda).first_derivative(darray, axis=0)
-        gj = sp(self._use_cuda).first_derivative(darray, axis=1)
-        gk = sp(self._use_cuda).first_derivative(darray, axis=2)
+        gi = sp(use_cuda).first_derivative(darray, axis=0)
+        gj = sp(use_cuda).first_derivative(darray, axis=1)
+        gk = sp(use_cuda).first_derivative(darray, axis=2)
 
         # Compute the Inner Product of the Gradients
-        if util.is_cupy_enabled(self._use_cuda):
+        if use_cuda:
             gi2 = (gi * gi).map_blocks(cundi.uniform_filter, size=kernel,
                                        dtype=darray.dtype)
             gj2 = (gj * gj).map_blocks(cundi.uniform_filter, size=kernel,
@@ -241,10 +244,10 @@ class EdgeDetection(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
-            if util.is_cupy_enabled(self._use_cuda):
+            use_cuda = util.is_cupy_enabled(self._use_cuda)
+            if use_cuda:
                 ki, kj, kk = kernel
-                patches = util.extract_patches(chunk, kernel,
-                        util.is_cupy_enabled())
+                patches = util.extract_patches(chunk, kernel, use_cuda)
 
                 out_data = []
                 for i in range(0, patches.shape[0]):
@@ -260,8 +263,7 @@ class EdgeDetection(BaseAttributes):
             else:
                 np.seterr(all='ignore')
                 ki, kj, kk = kernel
-                patches = util.extract_patches(chunk, kernel,
-                        util.is_cupy_enabled())
+                patches = util.extract_patches(chunk, kernel, use_cuda)
 
                 out_data = []
                 for i in range(0, patches.shape[0]):
@@ -351,13 +353,15 @@ class EdgeDetection(BaseAttributes):
         # Generate Dask Array as necessary
         darray, chunks_init = self.create_array(darray, kernel, preview)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         # Compute I, J, K gradients
-        gi = sp(self._use_cuda).first_derivative(darray, axis=0)
-        gj = sp(self._use_cuda).first_derivative(darray, axis=1)
-        gk = sp(self._use_cuda).first_derivative(darray, axis=2)
+        gi = sp(use_cuda).first_derivative(darray, axis=0)
+        gj = sp(use_cuda).first_derivative(darray, axis=1)
+        gk = sp(use_cuda).first_derivative(darray, axis=2)
 
         # Compute the Inner Product of the Gradients
-        if util.is_cupy_enabled(self._use_cuda):
+        if use_cuda:
             gi2 = (gi * gi).map_blocks(cundi.uniform_filter, size=kernel,
                                        dtype=darray.dtype)
             gj2 = (gj * gj).map_blocks(cundi.uniform_filter, size=kernel,
@@ -439,16 +443,18 @@ class EdgeDetection(BaseAttributes):
         v = -darray_xl / dip_factor
         w = da.ones_like(u, chunks=u.chunks)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         # Compute Gradients
-        ux = sp(self._use_cuda).first_derivative(u, axis=0)
-        uy = sp(self._use_cuda).first_derivative(u, axis=1)
-        uz = sp(self._use_cuda).first_derivative(u, axis=2)
-        vx = sp(self._use_cuda).first_derivative(v, axis=0)
-        vy = sp(self._use_cuda).first_derivative(v, axis=1)
-        vz = sp(self._use_cuda).first_derivative(v, axis=2)
+        ux = sp(use_cuda).first_derivative(u, axis=0)
+        uy = sp(use_cuda).first_derivative(u, axis=1)
+        uz = sp(use_cuda).first_derivative(u, axis=2)
+        vx = sp(use_cuda).first_derivative(v, axis=0)
+        vy = sp(use_cuda).first_derivative(v, axis=1)
+        vz = sp(use_cuda).first_derivative(v, axis=2)
 
         # Smooth Gradients
-        if util.is_cupy_enabled(self._use_cuda):
+        if use_cuda:
             ux = ux.map_blocks(cundi.uniform_filter, size=kernel,
                                dtype=ux.dtype)
             uy = uy.map_blocks(cundi.uniform_filter, size=kernel,
