@@ -163,7 +163,7 @@ class TestVolumeCurvature(TestCase):
             for i in range(len(out_data_np)):
                 out_cp = out_data_cp[i].compute()
                 out_np = out_data_np[i].compute()
-                np.testing.assert_array_almost_equal(out_cp, out_np)
+                np.testing.assert_array_almost_equal(out_cp.get(), out_np)
         except AssertionError as ae:
             total = diff = 0
             # Check if the percentage of mismatch is higher than 5.0 %

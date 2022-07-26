@@ -69,9 +69,7 @@ class EdgeDetection(BaseAttributes):
 
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
-            if util.is_cupy_enabled(self._use_cuda):
-                cp.seterr(all='ignore')
-            else:
+            if not util.is_cupy_enabled(self._use_cuda):
                 np.seterr(all='ignore')
 
             use_cuda = util.is_cupy_enabled(self._use_cuda)
@@ -126,8 +124,6 @@ class EdgeDetection(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(gi2, gj2, gk2, gigj, gigk, gjgk):
             if util.is_cupy_enabled(self._use_cuda):
-                cp.seterr(all='ignore')
-
                 chunk_shape = gi2.shape
 
                 gst = cp.array([[gi2, gigj, gigk],
@@ -248,6 +244,10 @@ class EdgeDetection(BaseAttributes):
             if use_cuda:
                 ki, kj, kk = kernel
                 patches = util.extract_patches(chunk, kernel, use_cuda)
+
+                if not hasattr(cp.linalg, 'eigvals'):
+                    raise NotImplementedError("eigvals() function is not "
+                                              "available in cp.linalg.")
 
                 out_data = []
                 for i in range(0, patches.shape[0]):
@@ -439,11 +439,11 @@ class EdgeDetection(BaseAttributes):
         darray_xl, chunks_init = self.create_array(darray_xl, kernel,
                                                    preview=preview)
 
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         u = -darray_il / dip_factor
         v = -darray_xl / dip_factor
-        w = da.ones_like(u, chunks=u.chunks)
-
-        use_cuda = util.is_cupy_enabled(self._use_cuda)
+        w = util.dask_ones_like(u, use_cuda=use_cuda)
 
         # Compute Gradients
         ux = sp(use_cuda).first_derivative(u, axis=0)
@@ -491,9 +491,9 @@ class EdgeDetection(BaseAttributes):
         vy = util.trim_dask_array(vy, kernel)
         vz = util.trim_dask_array(vz, kernel)
 
-        wx = da.zeros_like(ux, chunks=ux.chunks, dtype=ux.dtype)
-        wy = da.zeros_like(ux, chunks=ux.chunks, dtype=ux.dtype)
-        wz = da.zeros_like(ux, chunks=ux.chunks, dtype=ux.dtype)
+        wx = util.dask_zeros_like(ux, use_cuda=use_cuda)
+        wy = util.dask_zeros_like(ux, use_cuda=use_cuda)
+        wz = util.dask_zeros_like(ux, use_cuda=use_cuda)
 
         uv = u * v
         vw = v * w
@@ -505,9 +505,9 @@ class EdgeDetection(BaseAttributes):
         s = da.sqrt(u2pv2 + w2)
 
         # Measures of surfaces
-        E = da.ones_like(u, chunks=u.chunks, dtype=u.dtype)
+        E = util.dask_ones_like(u, use_cuda=use_cuda)
         F = -(u * w) / (da.sqrt(u2pv2) * da.sqrt(v2pw2))
-        G = da.ones_like(u, chunks=u.chunks, dtype=u.dtype)
+        G = util.dask_ones_like(u, use_cuda=use_cuda)
         D = -(-uv * vx+u2 * vy + v2 * ux - uv * uy) / (u2pv2 * s)
         Di = -(vw * (uy + vx) - 2 * u * w * vy - v2 *
                (uz + wx) + uv * (vz + wy)) / (2 * da.sqrt(u2pv2) *

@@ -15,7 +15,7 @@ try:
     import cupy as cp
 
     from glcm_cupy import glcm as glcm_gpu
-    from glcm_cupy import conf as glcm_conf
+    from glcm_cupy import Features as glcm_features
 except ImportError:
     pass
 
@@ -131,7 +131,8 @@ class GLCMAttributes(BaseAttributes):
             new_atts = list()
             for k in range(d):
                 image = gl[k, :, :, cp.newaxis]
-                g = glcm_gpu(image, bin_from=256, bin_to=levels_block, verbose=False)
+                g = glcm_gpu(image, bin_from=256, bin_to=levels_block,
+                             verbose=False)
                 new_atts.append(cp.pad(cp.asarray(g[...,
                                        glcm_type_block].squeeze(axis=2)), 3,
                                        pad_with, padder=0))
@@ -140,17 +141,19 @@ class GLCMAttributes(BaseAttributes):
 
         if util.is_cupy_enabled(self._use_cuda):
             if glcm_type == "contrast":
-                glcm_type = glcm_conf.CONTRAST
+                glcm_type = glcm_features.CONTRAST
+            elif glcm_type == "dissimilarity":
+                glcm_type = glcm_features.DISSIMILARITY
             elif glcm_type == "homogeneity":
-                glcm_type = glcm_conf.HOMOGENEITY
+                glcm_type = glcm_features.HOMOGENEITY
             elif glcm_type == "asm":
-                glcm_type = glcm_conf.ASM
+                glcm_type = glcm_features.ASM
             elif glcm_type == "mean":
-                glcm_type = glcm_conf.MEAN
+                glcm_type = glcm_features.MEAN
             elif glcm_type == "correlation":
-                glcm_type = glcm_conf.CORRELATION
+                glcm_type = glcm_features.CORRELATION
             elif glcm_type == "var":
-                glcm_type = glcm_conf.VAR
+                glcm_type = glcm_features.VARIANCE
             else:
                 raise NotImplementedError("GLCM type '%s' is not supported."
                                           % glcm_type)

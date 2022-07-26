@@ -212,8 +212,7 @@ class SignalProcess(BaseAttributes):
         darray, chunks_init = self.create_array(darray, preview=preview)
         if util.is_cupy_enabled(self._use_cuda):
             hist, bins = da.histogram(darray,
-                                      bins=cp.linspace(da_min,
-                                                       da_max, 256,
+                                      bins=cp.linspace(da_min, da_max, 256,
                                                        dtype=darray.dtype))
         else:
             hist, bins = da.histogram(darray,
@@ -451,6 +450,10 @@ class SignalProcess(BaseAttributes):
         # Function to extract patches and perform algorithm
         def operation(chunk, kernel):
             if util.is_cupy_enabled(self._use_cuda):
+                if not hasattr(cp, 'trapz'):
+                    raise NotImplementedError("CuPy trapz() is "
+                                              "not implemented yet")
+
                 x = util.extract_patches(chunk, (1, 1, kernel[-1]), True)
                 out = cp.trapz(x).reshape(x.shape[:3])
             else:

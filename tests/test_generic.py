@@ -84,7 +84,7 @@ class TestShapeAttributes(TestCase):
         return string
 
     def test_shape_check_from_array(self):
-        in_shape = (20, 20, 20)
+        in_shape = (40, 40, 40)
 
         if util.is_cupy_enabled():
             rng = cp.random.default_rng(seed=42)
@@ -100,13 +100,13 @@ class TestShapeAttributes(TestCase):
         try:
             out_data = func(in_data).compute()
         except NotImplementedError:
-            return
+            raise self.skipTest(str(nie))
 
         self.assertEqual(in_shape, out_data.shape)
 
     def test_shape_check_from_dask_array(self):
-        in_shape = (20, 20, 20)
-        in_shape_chunks = (5, 5, 5)
+        in_shape = (40, 40, 40)
+        in_shape_chunks = (10, 10, 10)
 
         if util.is_cupy_enabled():
             rng = cp.random.default_rng(seed=42)
@@ -124,14 +124,14 @@ class TestShapeAttributes(TestCase):
 
         try:
             out_data = func(in_data).compute()
-        except NotImplementedError:
-            return
+        except NotImplementedError as nie:
+            raise self.skipTest(str(nie))
 
         self.assertEqual(in_shape, out_data.shape)
 
     def test_dtype_as_np_from_dask_array(self):
-        in_shape = (20, 20, 20)
-        in_shape_chunks = (5, 5, 5)
+        in_shape = (40, 40, 40)
+        in_shape_chunks = (10, 10, 10)
 
         rng = np.random.default_rng(seed=42)
         in_data = rng.random(in_shape)
@@ -144,18 +144,18 @@ class TestShapeAttributes(TestCase):
         try:
             out_data = func(in_data)
             out_data_comp = out_data.compute()
-        except NotImplementedError:
-            return
 
-        self.assertEqual(out_data.dtype, out_data_comp.dtype)
+            self.assertEqual(out_data.dtype, out_data_comp.dtype)
 
-        self.assertEqual(np.ndarray, type(out_data_comp))
+            self.assertEqual(np.ndarray, type(out_data_comp))
+        except NotImplementedError as nie:
+            raise self.skipTest(str(nie))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
-        in_shape = (20, 20, 20)
-        in_shape_chunks = (5, 5, 5)
+        in_shape = (40, 40, 40)
+        in_shape_chunks = (10, 10, 10)
 
         rng = cp.random.default_rng(seed=42)
         in_data = rng.random(in_shape)
@@ -168,18 +168,18 @@ class TestShapeAttributes(TestCase):
         try:
             out_data = func(in_data)
             out_data_comp = out_data.compute()
-        except NotImplementedError:
-            return
 
-        self.assertEqual(out_data.dtype, out_data_comp.dtype)
+            self.assertEqual(out_data.dtype, out_data_comp.dtype)
 
-        self.assertEqual(cp.ndarray, type(out_data_comp))
+            self.assertEqual(cp.ndarray, type(out_data_comp))
+        except NotImplementedError as nie:
+            raise self.skipTest(str(nie))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_compare_attributes_cross_platforms(self):
-        in_shape = (20, 20, 20)
-        in_shape_chunks = (5, 5, 5)
+        in_shape = (40, 40, 40)
+        in_shape_chunks = (10, 10, 10)
 
         rng = cp.random.default_rng(seed=42)
         in_data_cp = rng.random(in_shape)
@@ -195,13 +195,12 @@ class TestShapeAttributes(TestCase):
         try:
             out_data_cp = func_cp(in_data_cp)
             out_data_np = func_np(in_data_np)
-        except NotImplementedError:
-            return
 
-        try:
             arr1 = out_data_cp.compute().get()
             arr2 = out_data_np.compute()
             np.testing.assert_array_almost_equal(arr1, arr2)
+        except NotImplementedError as nie:
+            raise self.skipTest(str(nie))
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(arr1 != arr2)

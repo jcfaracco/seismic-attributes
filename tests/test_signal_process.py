@@ -237,7 +237,7 @@ class TestRescaleAmplitudeRange(TestCase):
 
         self.assertEqual(out_data.dtype, out.dtype)
 
-        self.assertEqual(np.ndarray, type(out))
+        self.assertEqual(cp.ndarray, type(out))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")

@@ -688,10 +688,20 @@ class ComplexAttributes(BaseAttributes):
             return out
 
         darray, chunks_init = self.create_array(darray, preview=preview)
+
+        use_cuda = util.is_cupy_enabled(self._use_cuda)
+
         env = self.envelope(darray)
-        troughs = env.map_blocks(util.local_events, comparator=np.less,
-                                 use_cuda=util.is_cupy_enabled(self._use_cuda),
-                                 dtype=darray.dtype)
+
+        if use_cuda:
+            troughs = env.map_blocks(util.local_events, comparator=cp.less,
+                                     use_cuda=use_cuda,
+                                     dtype=darray.dtype)
+        else:
+            troughs = env.map_blocks(util.local_events, comparator=np.less,
+                                     use_cuda=use_cuda,
+                                     dtype=darray.dtype)
+
         troughs = troughs.cumsum(axis=-1)
 
         darray = darray.rechunk(env.chunks)

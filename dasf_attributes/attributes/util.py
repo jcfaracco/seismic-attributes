@@ -16,9 +16,9 @@ import psutil
 try:
     import cupy as cp
 
-    USE_CUPY=True
+    USE_CUPY = True
 except ImportError:
-    USE_CUPY=False
+    USE_CUPY = False
 
 # Ignore warning
 import warnings
@@ -303,7 +303,7 @@ def extract_patches(in_data, kernel, use_cuda=False):
     return patches
 
 
-def local_events(in_data, comparator, use_cuda=False):
+def local_events(in_data, comparator, use_cuda=True):
     """
     Description
     -----------
@@ -338,3 +338,23 @@ def local_events(in_data, comparator, use_cuda=False):
     result &= comparator(trace, minus)
 
     return result
+
+
+def dask_ones_like(in_data, dtype=None, use_cuda=True):
+    def generate_zeros(block):
+        if is_cupy_enabled(use_cuda):
+            return cp.ones(block.shape)
+        else:
+            return np.ones(block.shape)
+
+    return in_data.map_blocks(generate_zeros)
+
+
+def dask_zeros_like(in_data, dtype=None, use_cuda=True):
+    def generate_zeros(block):
+        if is_cupy_enabled(use_cuda):
+            return cp.zeros(block.shape)
+        else:
+            return np.zeros(block.shape)
+
+    return in_data.map_blocks(generate_zeros)
