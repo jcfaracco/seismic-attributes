@@ -88,7 +88,7 @@ class LBPAttributes(BaseAttributes):
 
     def local_binary_pattern_diag_3d(self, darray, preview=None):
 
-        kernel = (4, 0, 0)
+        kernel = (2, 1, 1)
 
         darray, chunks_init = self.create_array(darray, kernel=kernel,
                                                 boundary='periodic',
