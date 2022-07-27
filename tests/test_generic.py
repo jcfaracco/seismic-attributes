@@ -99,7 +99,7 @@ class TestShapeAttributes(TestCase):
 
         try:
             out_data = func(in_data).compute()
-        except NotImplementedError:
+        except NotImplementedError as nie:
             raise self.skipTest(str(nie))
 
         self.assertEqual(in_shape, out_data.shape)

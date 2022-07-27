@@ -385,7 +385,6 @@ class TestGradientStructureTensor(TestCase):
 
             self.assertEqual(np.ndarray, type(out))
 
-
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
     def test_dtype_as_cp_from_dask_array(self):
