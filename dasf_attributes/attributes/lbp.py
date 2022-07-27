@@ -76,7 +76,12 @@ class LBPAttributes(BaseAttributes):
                                                      radius, method))
             return np.asarray(sub_cube)
 
-        lbp = darray.map_blocks(__local_binary_pattern, dtype=darray.dtype)
+        if util.is_cupy_enabled(self._use_cuda):
+            raise NotImplementedError("CuCIM does not have any LBP method "
+                                      "implemented yet")
+        else:
+            lbp = darray.map_blocks(__local_binary_pattern, dtype=darray.dtype)
+
         result = util.trim_dask_array(lbp, kernel, hw)
 
         return result
@@ -90,9 +95,6 @@ class LBPAttributes(BaseAttributes):
         else:
             kernel = (min(int((darray.shape[0] + 4) / 4), 1000),
                       darray.shape[1], darray.shape[2])
-
-        if not isinstance(darray, da.core.Array):
-            darray = da.from_array(darray, chunks=kernel)
 
         darray, chunks_init = self.create_array(darray, kernel, hw=hw,
                                                 boundary='periodic',
