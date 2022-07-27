@@ -74,7 +74,8 @@ class LBPAttributes(BaseAttributes):
                 sub_cube.append(local_binary_pattern(block[i, :, :],
                                                      neighboors,
                                                      radius, method))
-            return da.from_array(np.array(sub_cube))
+            return np.asarray(sub_cube)
+
         lbp = darray.map_blocks(__local_binary_pattern, dtype=darray.dtype)
         result = util.trim_dask_array(lbp, kernel, hw)
 
