@@ -64,9 +64,6 @@ class LBPAttributes(BaseAttributes):
         neighboors = radius * 8
         method = 'default'
 
-        if not isinstance(darray, da.core.Array):
-            darray = da.from_array(darray, chunks=kernel)
-
         darray, chunks_init = self.create_array(darray, kernel, hw=hw,
                                                 boundary='periodic',
                                                 preview=preview)
