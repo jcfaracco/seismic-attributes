@@ -41,17 +41,17 @@ def parameterize_all_methods_attributes():
                if inspect.isclass(obj)]
 
     block_shape_list = [
-        "gradient_dips",              # Implemented by test_dip_azm
-        "gradient_structure_tensor",  # Implemented by test_dip_azm
-        "gst_2D_dips",                # Implemented by test_dip_azm
-        "volume_curvature",           # Implemented by test_edge_detection
-        "bandpass_filter",            # Implemented by test_frequency
-        "highpass_filter",            # Implemented by test_frequency
-        "lowpass_filter",             # Implemented by test_frequency
-        "cwt_ormsby",                 # Implemented by test_frequency
-        "cwt_ricker",                 # Implemented by test_frequency
-        "phase_rotation",             # Implemented by test_signal_process
-        "rescale_amplitude_range"     # Implemented by test_signal_process
+        "gradient_dips",                # Implemented by test_dip_azm
+        "gradient_structure_tensor",    # Implemented by test_dip_azm
+        "gst_2D_dips",                  # Implemented by test_dip_azm
+        "volume_curvature",             # Implemented by test_edge_detection
+        "bandpass_filter",              # Implemented by test_frequency
+        "highpass_filter",              # Implemented by test_frequency
+        "lowpass_filter",               # Implemented by test_frequency
+        "cwt_ormsby",                   # Implemented by test_frequency
+        "cwt_ricker",                   # Implemented by test_frequency
+        "phase_rotation",               # Implemented by test_signal_process
+        "rescale_amplitude_range"       # Implemented by test_signal_process
         ]
 
     functions = []
@@ -100,7 +100,7 @@ class TestShapeAttributes(TestCase):
         try:
             out_data = func(in_data).compute()
         except NotImplementedError as nie:
-            raise self.skipTest(str(nie))
+            raise self.skipTest("%s: %s" % (self.func, str(nie)))
 
         self.assertEqual(in_shape, out_data.shape)
 
@@ -125,7 +125,7 @@ class TestShapeAttributes(TestCase):
         try:
             out_data = func(in_data).compute()
         except NotImplementedError as nie:
-            raise self.skipTest(str(nie))
+            raise self.skipTest("%s: %s" % (self.func, str(nie)))
 
         self.assertEqual(in_shape, out_data.shape)
 
@@ -149,7 +149,7 @@ class TestShapeAttributes(TestCase):
 
             self.assertEqual(np.ndarray, type(out_data_comp))
         except NotImplementedError as nie:
-            raise self.skipTest(str(nie))
+            raise self.skipTest("%s: %s" % (self.func, str(nie)))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -173,7 +173,7 @@ class TestShapeAttributes(TestCase):
 
             self.assertEqual(cp.ndarray, type(out_data_comp))
         except NotImplementedError as nie:
-            raise self.skipTest(str(nie))
+            raise self.skipTest("%s: %s" % (self.func, str(nie)))
 
     @unittest.skipIf(not util.is_cupy_enabled(),
                      "not supported CUDA in this platform")
@@ -200,7 +200,7 @@ class TestShapeAttributes(TestCase):
             arr2 = out_data_np.compute()
             np.testing.assert_array_almost_equal(arr1, arr2)
         except NotImplementedError as nie:
-            raise self.skipTest(str(nie))
+            raise self.skipTest("%s: %s" % (self.func, str(nie)))
         except AssertionError as ae:
             # Check if the percentage of mismatch is higher than 5.0 %
             unequal_pos = np.where(arr1 != arr2)
