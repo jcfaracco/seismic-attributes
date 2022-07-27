@@ -266,7 +266,7 @@ class LBPAttributes(BaseAttributes):
         else:
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d,
                                             dtype=darray.dtype)
-        result = util.trim_dask_array(lbp_diag_3d, kernel, hw)
+        result = util.trim_dask_array(lbp_diag_3d, kernel)
 
         unique = da.unique(result)
 
