@@ -87,7 +87,11 @@ class ComplexAttributes(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
         if util.is_cupy_enabled(self._use_cuda):
-            analytical_trace = darray.map_blocks(cusignal.hilbert,
+            # Avoiding return complex128
+            def cusignal_hilbert(block):
+                return cusignal.hilbert(block).real
+
+            analytical_trace = darray.map_blocks(cusignal_hilbert,
                                                  dtype=darray.dtype)
         else:
             # Avoiding return complex128
@@ -164,6 +168,9 @@ class ComplexAttributes(BaseAttributes):
         darray, chunks_init = self.create_array(darray, kernel,
                                                 preview=preview)
         if util.is_cupy_enabled(self._use_cuda):
+            if cp.__version__ < "12.0.0":
+                raise NotImplementedError("CuPy function angle() mismatches "
+                                          "with NumPy version")
             analytical_trace = darray.map_blocks(cusignal.hilbert,
                                                  dtype=darray.dtype)
         else:
@@ -196,6 +203,10 @@ class ComplexAttributes(BaseAttributes):
         -------
         result : Dask Array
         """
+
+        if util.is_cupy_enabled(self._use_cuda) and cp.__version__ < "12.0.0":
+            raise NotImplementedError("CuPy function angle() mismatches with "
+                                      "NumPy version")
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         phase = self.instantaneous_phase(darray)
@@ -512,6 +523,12 @@ class ComplexAttributes(BaseAttributes):
 
             return out
 
+        if util.is_cupy_enabled(self._use_cuda):
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
+
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
         phase = self.instantaneous_phase(darray)
@@ -568,6 +585,12 @@ class ComplexAttributes(BaseAttributes):
                         out[i, j, idx] = chunk2[i, j, peak]
 
             return out
+
+        if util.is_cupy_enabled(self._use_cuda):
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
@@ -626,6 +649,12 @@ class ComplexAttributes(BaseAttributes):
                         out[i, j, idx] = chunk2[i, j, peak]
 
             return out
+
+        if util.is_cupy_enabled(self._use_cuda):
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
 
         darray, chunks_init = self.create_array(darray, preview=preview)
         env = self.envelope(darray)
@@ -692,6 +721,12 @@ class ComplexAttributes(BaseAttributes):
         use_cuda = util.is_cupy_enabled(self._use_cuda)
 
         env = self.envelope(darray)
+
+        if use_cuda:
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
 
         if use_cuda:
             troughs = env.map_blocks(util.local_events, comparator=cp.less,

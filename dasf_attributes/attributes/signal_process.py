@@ -218,6 +218,13 @@ class SignalProcess(BaseAttributes):
             hist, bins = da.histogram(darray,
                                       bins=np.linspace(da_min, da_max, 256,
                                                        dtype=darray.dtype))
+
+        if util.is_cupy_enabled(self._use_cuda):
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
+
         cdf = hist.cumsum(axis=-1)
         cdf = cdf / cdf[-1]
         bins = (bins[:-1] + bins[1:]) / 2
@@ -253,6 +260,13 @@ class SignalProcess(BaseAttributes):
 
         darray, chunks_init = self.create_array(darray, kernel=None,
                                                 preview=preview)
+
+        if util.is_cupy_enabled(self._use_cuda):
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
+
         z_ind = da.ones(darray.shape, chunks=darray.chunks).cumsum(axis=-1)
         gain = (1 + z_ind) ** gain_val
 
