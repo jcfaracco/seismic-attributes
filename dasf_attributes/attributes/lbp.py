@@ -88,15 +88,7 @@ class LBPAttributes(BaseAttributes):
 
     def local_binary_pattern_diag_3d(self, darray, preview=None):
 
-        hw = (2, 0, 0)
-
-        if util.is_cupy_enabled(self._use_cuda):
-            kernel = (darray.shape[0], darray.shape[1], darray.shape[2])
-        else:
-            kernel = (min(int((darray.shape[0] + 4) / 4), 1000),
-                      darray.shape[1], darray.shape[2])
-
-        darray, chunks_init = self.create_array(darray, kernel, hw=hw,
+        darray, chunks_init = self.create_array(darray, kernel=None,
                                                 boundary='periodic',
                                                 preview=preview)
 
