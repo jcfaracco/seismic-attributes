@@ -257,8 +257,7 @@ class LBPAttributes(BaseAttributes):
                                     cp.float32(min_local), cp.int32(dimx),
                                     cp.int32(dimy), cp.int32(dimz)))
 
-            # XXX: we need to handle Numpy here due to Dask issue #7482
-            return (cp.asnumpy(out).reshape(dimx, dimy, dimz))
+            return cp.asarray(out).reshape(dimx, dimy, dimz)
 
         if util.is_cupy_enabled(self._use_cuda):
             lbp_diag_3d = darray.map_blocks(__local_binary_pattern_diag_3d_cu,

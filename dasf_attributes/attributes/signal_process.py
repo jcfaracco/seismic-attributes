@@ -197,6 +197,12 @@ class SignalProcess(BaseAttributes):
         result : Dask Array
         """
 
+        if util.is_cupy_enabled(self._use_cuda):
+            # XXX: CUDA should be disabled due to cumsum issue.
+            # See Dask: https://github.com/dask/dask/issues/9315
+            raise NotImplementedError("Dask cumsum() method does not support "
+                                      "CuPy")
+
         # Function to interpolate seismic to new scaling
         def interp(chunk, cdf, bins):
             if util.is_cupy_enabled(self._use_cuda):
@@ -218,12 +224,6 @@ class SignalProcess(BaseAttributes):
             hist, bins = da.histogram(darray,
                                       bins=np.linspace(da_min, da_max, 256,
                                                        dtype=darray.dtype))
-
-        if util.is_cupy_enabled(self._use_cuda):
-            # XXX: CUDA should be disabled due to cumsum issue.
-            # See Dask: https://github.com/dask/dask/issues/9315
-            raise NotImplementedError("Dask cumsum() method does not support "
-                                      "CuPy")
 
         cdf = hist.cumsum(axis=-1)
         cdf = cdf / cdf[-1]

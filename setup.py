@@ -3,19 +3,20 @@
 from setuptools import setup, find_packages
 
 long_description = \
-"This project was originally implemented by " \
-"@dudley-fitzgerald as a collection of a seismic " \
-"calculation. This specific one enhances and " \
-"includes new attributes, other facilities and " \
-"some optimizations to help geologists to " \
-"to calculate them using Dask."
+    "This project was originally implemented by " \
+    "@dudley-fitzgerald as a collection of a seismic " \
+    "calculation. This specific one enhances and " \
+    "includes new attributes, other facilities and " \
+    "some optimizations to help geologists to " \
+    "to calculate them using Dask."
 
 setup(
     name="dasf_attributes",
     version="1.0.0",
     author="Julio Cesar Faracco",
     author_email="jcfaracco@gmail.com",
-    description="A collections of tools to calculate seismic attributes using Dask",
+    description="A collections of tools to calculate seismic attributes "
+                "using Dask",
     license="Apache v2.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
